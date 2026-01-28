@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>Semantic Video Search</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+        }
+
+        input {
+            width: 400px;
+            padding: 8px;
+        }
+
+        button {
+            padding: 8px 12px;
+            margin-left: 5px;
+        }
+
+        .result {
+            margin-top: 15px;
+            padding: 10px;
+            border: 1px solid #ccc;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div style="background:#f0f0f0; padding:15px; margin-bottom:20px; border-radius:8px;">
+        <h3>🔄 Switch Video Source</h3>
+        <input id="videoUrl" placeholder="https://www.youtube.com/watch?v=..." style="width:300px" />
+        <button id="loadBtn" onclick="processVideo()">Load Video</button>
+        <div id="status" style="margin-top:10px; font-weight:bold; color:#555;"></div>
+    </div>
+
+    <h2>🎬 Semantic Video Search</h2>
+
+    <input id="query" placeholder="before crowd celebrating" />
+    <button onclick="search()">Search</button>
+
+    <div id="results"></div>
+
+    <script>
+        async function processVideo() {
+            const url = document.getElementById("videoUrl").value;
+            if (!url) return alert("Please enter a URL");
+
+            document.getElementById("loadBtn").disabled = true;
+            document.getElementById("status").innerText = "Requesting...";
+
+            try {
+                await fetch("http://localhost:8000/process-video", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ url })
+                });
+
+                pollStatus();
+
+            } catch (err) {
+                document.getElementById("status").innerText = "Error starting job";
+                document.getElementById("loadBtn").disabled = false;
+            }
+        }
+
+        async function pollStatus() {
+            const interval = setInterval(async () => {
+                try {
+                    const res = await fetch("http://localhost:8000/process-status");
+                    const data = await res.json();
+
+                    document.getElementById("status").innerText = "Status: " + data.message;
+
+                    if (data.state === "completed" || data.state === "error") {
+                        clearInterval(interval);
+                        document.getElementById("loadBtn").disabled = false;
+                        if (data.state === "completed") {
+                            alert("Video processed! You can now search.");
+                        }
+                    }
+                } catch (e) {
+                    console.error(e);
+                }
+            }, 2000);
+        }
+
+        async function search() {
+            const query = document.getElementById("query").value;
+            document.getElementById("results").innerHTML = "Searching...";
+
+            try {
+                const response = await fetch(
+                    `http://localhost:8000/intent-search?query=${encodeURIComponent(query)}`,
+                    { method: "POST" }
+                );
+
+                const data = await response.json();
+
+                let html = "";
+                data.forEach(item => {
+                    html += `
+                  <div style="margin-bottom:15px">
+                      <b>Best Frame:</b> ${item.best_frame}<br>
+                      <img src="http://localhost:8000/frames/${item.best_frame}" style="width:200px; border:1px solid #ddd; margin-top:5px;" /><br>
+                      <b>Caption:</b> ${item.caption}<br>
+                      <b>Score:</b> ${item.score.toFixed(3)}<br>
+                      <b>Intent:</b> ${item.intent}<br>
+                      <b>Time Range:</b> ${item.start}s - ${item.end}s<br>
+                      <video width="320" height="240" controls preload="metadata">
+                          <source src="${item.video_url}" type="video/mp4">
+                          Your browser does not support the video tag.
+                      </video><br>
+                      <a href="${item.full_video_url}" target="_blank" style="text-decoration:none; font-size:14px;">🔗 Jump to time in full video</a>
+                  </div>
+                  <hr>
+              `;
+                });
+
+                document.getElementById("results").innerHTML = html;
+
+            } catch (err) {
+                document.getElementById("results").innerHTML =
+                    "❌ Error connecting to backend";
+                console.error(err);
+            }
+        }
+    </script>
+
+
+
+
+
+
+</body>
+
+</html>

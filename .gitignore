@@ -1,0 +1,17 @@
+
+venv/
+__pycache__/
+*.pyc
+.DS_Store
+.env
+
+# Generated media
+*.mp4
+frames/
+clips/
+captions.txt
+video.en.srt
+video.mp4.part
+
+# Generated config
+video_config.json
