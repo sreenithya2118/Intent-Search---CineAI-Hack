@@ -56,14 +56,19 @@ from semantic_search import search_frames, load_data
 # Global status
 processing_status = {"state": "idle", "message": ""}
 
-def update_status(msg, append_vector_db=False):
+def update_status(msg, append_vector_db=True):
+    """
+    Update processing status. 
+    append_vector_db: Always True now to preserve historical data across all videos.
+    """
     global processing_status
     if msg == "COMPLETED":
         print("🔄 processing complete. Reloading search index...")
         load_data()  # Reload embeddings (old method)
         if RAG_AVAILABLE:
             try:
-                load_captions_to_vector_db(append_only=append_vector_db)
+                # ALWAYS use append_only=True to preserve historical data
+                load_captions_to_vector_db(append_only=True)
             except Exception as e:
                 print(f"⚠️ Vector DB load failed: {e}")
         processing_status = {"state": "completed", "message": "Done! Search now."}
@@ -74,8 +79,10 @@ def update_status(msg, append_vector_db=False):
 
 @app.post("/process-video")
 def process_video_endpoint(req: VideoRequest, background_tasks: BackgroundTasks):
+    """Process YouTube video. Incremental: preserves existing frames and captions."""
     global processing_status
     processing_status = {"state": "starting", "message": "Starting job..."}
+    # Use update_status which now always uses append_only=True for vector DB
     background_tasks.add_task(process_video_logic, req.url, update_status)
     return {"status": "started"}
 
@@ -124,6 +131,48 @@ def list_source_clips():
         if ext in allowed:
             clips.append({"name": f, "url": f"/source_clips/{f}"})
     return {"clips": clips}
+
+@app.get("/video-history")
+def get_video_history():
+    """Return history of all processed videos (YouTube and uploaded clips)."""
+    import json
+    history_file = "video_history.json"
+    if not os.path.exists(history_file):
+        return {"videos": [], "total": 0}
+    try:
+        with open(history_file, "r") as f:
+            history = json.load(f)
+        return {"videos": history.get("videos", []), "total": len(history.get("videos", []))}
+    except Exception as e:
+        return {"videos": [], "total": 0, "error": str(e)}
+
+@app.get("/captions-stats")
+def get_captions_stats():
+    """Return statistics about captions.txt (total captions, unique sources)."""
+    captions_file = "captions.txt"
+    if not os.path.exists(captions_file):
+        return {"total_captions": 0, "sources": {}}
+    
+    import re
+    sources = {}
+    total = 0
+    with open(captions_file, "r") as f:
+        for line in f:
+            if ": " in line:
+                total += 1
+                frame = line.strip().split(": ", 1)[0]
+                # Detect source type
+                if frame.startswith("youtube_"):
+                    m = re.match(r"youtube_(\d+)_frame", frame)
+                    source = f"youtube_{m.group(1)}" if m else "youtube"
+                elif frame.startswith("clip_"):
+                    m = re.match(r"clip_(\d+)_frame", frame)
+                    source = f"clip_{m.group(1)}" if m else "clip"
+                else:
+                    source = "legacy"
+                sources[source] = sources.get(source, 0) + 1
+    
+    return {"total_captions": total, "sources": sources}
 
 # Ensure dirs exist before mounting (mount happens at import, startup runs later)
 os.makedirs("source_clips", exist_ok=True)

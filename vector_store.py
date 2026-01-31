@@ -144,8 +144,16 @@ def search_vector_db(query, top_k=10, threshold=0.4):
                 continue
 
             frame = metadata.get("frame", "")
+            # Support both clip_XXX and youtube_XXX prefixes
             m = re.match(r"clip_(\d+)_frame", frame)
-            clip_id = m.group(1) if m else "0"
+            if m:
+                clip_id = f"clip_{m.group(1)}"
+            else:
+                m = re.match(r"youtube_(\d+)_frame", frame)
+                if m:
+                    clip_id = f"youtube_{m.group(1)}"
+                else:
+                    clip_id = "0"
             
             hits.append({
                 "frame": frame,

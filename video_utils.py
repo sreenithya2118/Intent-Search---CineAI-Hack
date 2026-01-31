@@ -14,10 +14,12 @@ os.makedirs(CLIPS_DIR, exist_ok=True)
 def _get_source_video_for_frame(best_frame: str):
     """
     From frame filename, determine which source video to use.
-    - frame_0001.jpg -> video.mp4 (YouTube mode)
+    - frame_0001.jpg -> video.mp4 (legacy YouTube mode)
+    - youtube_001_frame_0001.jpg -> source_clips/youtube_001.mp4
     - clip_001_frame_0001.jpg -> source_clips/clip_001.*
-    Returns (video_path, clip_id_or_none).
+    Returns (video_path, source_id_or_none).
     """
+    # Check for uploaded clip format
     m = re.match(r"clip_(\d+)_frame_\d+", best_frame)
     if m:
         clip_num = m.group(1)
@@ -25,7 +27,19 @@ def _get_source_video_for_frame(best_frame: str):
         pattern = os.path.join(SOURCE_CLIPS_DIR, f"clip_{clip_num}.*")
         matches = glob.glob(pattern)
         if matches:
-            return matches[0], clip_num
+            return matches[0], f"clip_{clip_num}"
+    
+    # Check for YouTube format with prefix - now stored in source_clips/
+    m = re.match(r"youtube_(\d+)_frame_\d+", best_frame)
+    if m:
+        youtube_num = m.group(1)
+        # YouTube videos are now saved to source_clips/youtube_XXX.mp4
+        youtube_path = os.path.join(SOURCE_CLIPS_DIR, f"youtube_{youtube_num}.mp4")
+        if os.path.exists(youtube_path):
+            return youtube_path, f"youtube_{youtube_num}"
+        # Fallback to video.mp4 for legacy
+        return VIDEO_PATH, f"youtube_{youtube_num}"
+    
     return VIDEO_PATH, None
 
 
@@ -40,11 +54,11 @@ def ensure_clip(start: float, end: float, best_frame: str = None) -> str:
     end = round(end, 2)
     duration = round(end - start, 2)
 
-    source_video, clip_id = _get_source_video_for_frame(best_frame or "frame_0001.jpg")
+    source_video, source_id = _get_source_video_for_frame(best_frame or "frame_0001.jpg")
 
-    # Safe filename - include clip_id to avoid collisions when multiple sources
-    if clip_id:
-        filename = f"clip_{clip_id}_{start}_{end}.mp4"
+    # Safe filename - include source_id to avoid collisions when multiple sources
+    if source_id:
+        filename = f"{source_id}_{start}_{end}.mp4"
     else:
         filename = f"clip_{start}_{end}.mp4"
     output_path = os.path.join(CLIPS_DIR, filename)
