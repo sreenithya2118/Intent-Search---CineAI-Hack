@@ -8,35 +8,46 @@ const navLinks = [
   { path: '/production-planner', label: 'Production Planner', icon: ClipboardList },
 ]
 
-export default function Header() {
+export default function Sidebar() {
   const location = useLocation()
 
   return (
-    <header className="app-header navbar-top">
-      <div className="header-inner">
-        <Link to="/" className="header-logo">
-          <span className="header-logo-icon">🎬</span>
-          <div className="header-logo-text-block">
-            <span className="header-logo-text">Semantic Video Search</span>
-            <span className="header-tagline">Add a video, then search with your words</span>
-          </div>
+    <aside className="sidebar">
+      {/* Logo Section */}
+      <div className="sidebar-logo">
+        <Link to="/" className="sidebar-logo-link">
+          <div className="sidebar-logo-icon">🎬</div>
+          <span className="sidebar-logo-text">Semantic Video Search</span>
         </Link>
-        <nav className="header-nav">
-          {navLinks.map(({ path, label, icon: Icon }) => {
-            const isActive = location.pathname === path
-            return (
-              <Link 
-                key={path} 
-                to={path} 
-                className={`header-nav-link ${isActive ? 'active' : ''}`}
-              >
-                <Icon className="header-nav-icon" size={22} />
-                <span className="header-nav-label">{label}</span>
-              </Link>
-            )
-          })}
-        </nav>
       </div>
-    </header>
+
+      {/* Navigation Links */}
+      <nav className="sidebar-nav">
+        {navLinks.map(({ path, label, icon: Icon }) => {
+          const isActive = location.pathname === path
+          return (
+            <Link 
+              key={path} 
+              to={path} 
+              className={`sidebar-nav-link ${isActive ? 'active' : ''}`}
+            >
+              <Icon className="sidebar-nav-icon" size={20} />
+              <span className="sidebar-nav-label">{label}</span>
+            </Link>
+          )
+        })}
+        </nav>
+
+      {/* User Profile Section (Optional - can be removed or made functional later) */}
+      <div className="sidebar-footer">
+        <div className="sidebar-user">
+          <div className="sidebar-user-avatar">👤</div>
+          <div className="sidebar-user-info">
+            <div className="sidebar-user-name">User</div>
+            <div className="sidebar-user-email">user@example.com</div>
+          </div>
+        </div>
+      </div>
+    </aside>
   )
 }

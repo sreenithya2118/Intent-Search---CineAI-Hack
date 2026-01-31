@@ -1,14 +1,23 @@
 import { FlickeringGrid } from '@/components/ui/flickering-grid'
-import Header from './Header'
+import Sidebar from './Header'
 import Footer from './Footer'
 import { Outlet, useLocation } from 'react-router-dom'
+import { Film, Sparkles, ClipboardList } from 'lucide-react'
+
+const pageInfo = {
+  '/upload': { label: 'Upload Video', icon: Film },
+  '/search': { label: 'Multimodal Search', icon: Sparkles },
+  '/production-planner': { label: 'Production Planner', icon: ClipboardList },
+}
 
 export default function Layout() {
   const location = useLocation()
   const isHomePage = location.pathname === '/'
+  const currentPage = pageInfo[location.pathname]
+  const PageIcon = currentPage?.icon
 
   return (
-    <div className="min-h-screen relative">
+    <div className="app-layout">
       <div
         className="fixed inset-0 z-0 overflow-hidden"
         style={{
@@ -25,21 +34,20 @@ export default function Layout() {
           className="absolute inset-0 size-full"
         />
       </div>
-      <div className="relative z-10">
-        <Header />
-        {!isHomePage && (
-          <div className="hero-wrapper" style={{ padding: '60px 0 40px' }}>
-            <div className="container mx-auto px-4">
-              <h1 className="text-4xl md:text-5xl font-bold text-center text-foreground">
-                {location.pathname === '/upload' && '📥 Upload Video'}
-                {location.pathname === '/search' && '🔍 Multimodal Search'}
-                {location.pathname === '/production-planner' && '📋 Production Planner'}
-              </h1>
+      <div className="layout-container">
+        <Sidebar />
+        <main className="main-content">
+          {!isHomePage && currentPage && (
+            <div className="page-header">
+              <div className="page-title-container">
+                {PageIcon && <PageIcon className="page-title-icon" size={24} />}
+                <h1 className="page-title">{currentPage.label}</h1>
+              </div>
             </div>
-          </div>
-        )}
-        <Outlet />
-        <Footer />
+          )}
+          <Outlet />
+          <Footer />
+        </main>
       </div>
     </div>
   )

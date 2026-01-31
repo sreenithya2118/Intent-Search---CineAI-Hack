@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { videoAPI } from '../services/api'
+import { Upload, Youtube, FileVideo, X } from 'lucide-react'
 
 const API_BASE = 'http://localhost:8000'
 
@@ -124,99 +125,71 @@ const VideoLoader = () => {
   }
 
   return (
-    <section id="load-video" className="section">
-      <h2>📥 Upload Video Content</h2>
-      <p className="text-muted" style={{ marginBottom: '32px', fontSize: '1.1rem' }}>
-        Add a YouTube video or upload multiple video clips. We extract frames and make them searchable with AI-powered semantic search.
-      </p>
-
-      {/* Tabs */}
-      <div className="upload-tabs" style={{ display: 'flex', gap: '8px', marginBottom: '20px' }}>
-        <button
-          type="button"
-          className={`tab-btn ${activeTab === 'youtube' ? 'active' : ''}`}
-          onClick={() => setActiveTab('youtube')}
-          style={{
-            padding: '10px 20px',
-            border: '1px solid var(--border-strong)',
-            borderRadius: 'var(--radius)',
-            background: activeTab === 'youtube' ? 'var(--primary)' : 'var(--surface)',
-            color: activeTab === 'youtube' ? 'white' : 'var(--text-muted)',
-            cursor: 'pointer',
-            fontWeight: 600,
-          }}
-        >
-          YouTube URL
-        </button>
-        <button
-          type="button"
-          className={`tab-btn ${activeTab === 'upload' ? 'active' : ''}`}
-          onClick={() => setActiveTab('upload')}
-          style={{
-            padding: '10px 20px',
-            border: '1px solid var(--border-strong)',
-            borderRadius: 'var(--radius)',
-            background: activeTab === 'upload' ? 'var(--primary)' : 'var(--surface)',
-            color: activeTab === 'upload' ? 'white' : 'var(--text-muted)',
-            cursor: 'pointer',
-            fontWeight: 600,
-          }}
-        >
-          Upload clips
-        </button>
+    <div className="upload-video-container">
+      {/* Badge */}
+      <div className="upload-badge">
+        <span>•</span> Video Upload & Processing
       </div>
 
-      {/* YouTube tab */}
-      {activeTab === 'youtube' && (
-        <div className="input-group">
-          <input
-            type="text"
-            value={videoUrl}
-            onChange={(e) => setVideoUrl(e.target.value)}
-            onKeyPress={(e) => e.key === 'Enter' && !loading && processVideo()}
-            placeholder="Paste YouTube link here"
-            disabled={loading}
-          />
-          <button
-            className="btn btn-primary"
-            onClick={processVideo}
-            disabled={loading}
-          >
-            {loading ? (
-              <>
-                <span className="loading"></span>
-                <span>Processing...</span>
-              </>
-            ) : (
-              <>
-                <span>📥</span>
-                <span>Add video</span>
-              </>
-            )}
-          </button>
-        </div>
-      )}
+      {/* Main Title */}
+      <h1 className="upload-main-title">
+        Upload Your <span className="title-highlight">Video</span>
+      </h1>
+      <p className="upload-subtitle">
+        Upload your video files or paste a YouTube URL. We extract frames, generate captions, and make them searchable with AI-powered semantic search.
+      </p>
 
-      {/* Upload clips tab */}
-      {activeTab === 'upload' && (
-        <div>
+      {/* Upload Options */}
+      <div className="upload-options">
+        {/* YouTube URL Option */}
+        <div className="upload-option-card">
+          <div className="upload-option-header">
+            <Youtube className="upload-option-icon" size={24} />
+            <h3 className="upload-option-title">YouTube URL</h3>
+          </div>
+          <div className="upload-option-content">
+            <input
+              type="text"
+              value={videoUrl}
+              onChange={(e) => setVideoUrl(e.target.value)}
+              onKeyPress={(e) => e.key === 'Enter' && !loading && processVideo()}
+              placeholder="Paste YouTube link here"
+              disabled={loading}
+              className="youtube-input"
+            />
+            <button
+              className="upload-action-btn"
+              onClick={processVideo}
+              disabled={loading || !videoUrl.trim()}
+            >
+              {loading ? (
+                <>
+                  <span className="loading"></span>
+                  <span>Processing...</span>
+                </>
+              ) : (
+                <>
+                  <Upload size={18} />
+                  <span>Process Video</span>
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+
+        {/* File Upload Option */}
+        <div className="upload-option-card">
+          <div className="upload-option-header">
+            <FileVideo className="upload-option-icon" size={24} />
+            <h3 className="upload-option-title">Upload Video Files</h3>
+          </div>
           <div
-            className="file-drop-zone"
+            className={`file-drop-zone-large ${isDragging ? 'dragging' : ''}`}
             onClick={() => fileInputRef.current?.click()}
             onDrop={handleDrop}
             onDragOver={handleDragOver}
             onDragEnter={handleDragOver}
             onDragLeave={handleDragLeave}
-            style={{
-              border: `2px dashed ${isDragging ? 'var(--primary)' : 'var(--border-strong)'}`,
-              borderRadius: 'var(--radius)',
-              padding: '24px',
-              textAlign: 'center',
-              cursor: 'pointer',
-              marginBottom: '12px',
-              background: isDragging ? 'var(--primary-light)' : 'var(--surface-alt)',
-              transition: 'border-color 0.15s, background 0.15s',
-            }}
           >
             <input
               ref={fileInputRef}
@@ -226,39 +199,38 @@ const VideoLoader = () => {
               onChange={handleFileChange}
               style={{ display: 'none' }}
             />
-            <p className="text-muted" style={{ marginBottom: '8px' }}>
-              {isDragging ? 'Drop files here...' : 'Click to select or drag video files (mp4, mov, webm, avi, mkv)'}
+            <div className="upload-icon-large">
+              <Upload size={48} />
+            </div>
+            <p className="upload-main-text">
+              {isDragging ? 'Drop files here...' : 'Drag & drop your video files here'}
             </p>
-            <p className="text-muted" style={{ fontSize: '14px' }}>
-              {selectedFiles.length > 0
-                ? `${selectedFiles.length} file(s) selected`
-                : 'Multiple files supported'}
+            <p className="upload-sub-text">
+              or click to browse • MP4, MOV, WEBM, AVI, MKV (max 100MB per file)
             </p>
           </div>
+
+          {/* Selected Files List */}
           {selectedFiles.length > 0 && (
-            <ul style={{ marginBottom: '16px', paddingLeft: '20px' }}>
+            <div className="selected-files-list">
               {selectedFiles.map((f, i) => (
-                <li key={i} style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
-                  <span className="text-muted">{f.name}</span>
+                <div key={i} className="selected-file-item">
+                  <FileVideo size={18} className="file-icon" />
+                  <span className="file-name">{f.name}</span>
                   <button
                     type="button"
                     onClick={(e) => { e.stopPropagation(); removeFile(i) }}
-                    style={{
-                      background: 'transparent',
-                      border: 'none',
-                      color: 'var(--primary)',
-                      cursor: 'pointer',
-                      fontSize: '12px',
-                    }}
+                    className="remove-file-btn"
                   >
-                    Remove
+                    <X size={16} />
                   </button>
-                </li>
+                </div>
               ))}
-            </ul>
+            </div>
           )}
+
           <button
-            className="btn btn-primary"
+            className="upload-action-btn-large"
             onClick={processClips}
             disabled={loading || selectedFiles.length === 0}
           >
@@ -269,63 +241,57 @@ const VideoLoader = () => {
               </>
             ) : (
               <>
-                <span>📤</span>
-                <span>Upload & process</span>
+                <Upload size={20} />
+                <span>Upload {selectedFiles.length > 0 ? `${selectedFiles.length} ` : ''}Video{selectedFiles.length !== 1 ? 's' : ''} to Continue</span>
               </>
             )}
           </button>
         </div>
-      )}
+      </div>
 
+      {/* Status Message */}
       {status.message && (
-        <div className={`status ${status.state}`} style={{ marginTop: '16px' }}>
+        <div className={`upload-status ${status.state}`}>
           <span>
             {status.state === 'processing' && '⏳'}
             {status.state === 'completed' && '✅'}
             {status.state === 'error' && '❌'}
             {status.state === 'idle' && 'ℹ️'}
           </span>
-          <span>Status: {status.message}</span>
+          <span>{status.message}</span>
         </div>
       )}
 
+      {/* Uploaded Videos Section */}
       {uploadedClips.length > 0 && (
-        <div style={{ marginTop: '24px' }}>
-          <h3 style={{ marginBottom: '12px', fontSize: '1.1rem' }}>📁 Your uploaded clips</h3>
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
-              gap: '16px',
-            }}
-          >
+        <div className="uploaded-videos-section">
+          <div className="section-header">
+            <h2 className="section-title">
+              <FileVideo size={20} />
+              Your Uploaded Videos
+            </h2>
+            <span className="section-count">{uploadedClips.length} video{uploadedClips.length !== 1 ? 's' : ''}</span>
+          </div>
+          <div className="videos-grid">
             {uploadedClips.map((clip) => (
-              <div
-                key={clip.name}
-                style={{
-                  background: 'var(--surface-alt)',
-                  borderRadius: 'var(--radius)',
-                  overflow: 'hidden',
-                  border: '1px solid var(--border-strong)',
-                }}
-              >
+              <div key={clip.name} className="video-card">
                 <video
                   controls
                   preload="metadata"
-                  style={{ width: '100%', display: 'block' }}
+                  className="video-preview"
                   src={`${API_BASE}${clip.url}`}
                 >
                   Your browser does not support the video tag.
                 </video>
-                <div style={{ padding: '12px', fontSize: '14px', color: 'var(--text-muted)' }}>
-                  {clip.name}
+                <div className="video-card-info">
+                  <span className="video-name">{clip.name}</span>
                 </div>
               </div>
             ))}
           </div>
         </div>
       )}
-    </section>
+    </div>
   )
 }
 
