@@ -122,6 +122,16 @@
   background: var(--surface-card);
 }
 
+.header-nav-link.active {
+  color: var(--primary);
+  background: var(--primary-light);
+}
+
+.header-nav-link.active .header-nav-icon {
+  opacity: 1;
+  color: var(--primary);
+}
+
 .header-nav-icon {
   opacity: 0.9;
 }
@@ -257,12 +267,13 @@ body {
 .section {
   background: var(--surface-card);
   border-radius: var(--radius-lg);
-  padding: 28px 28px 28px 32px;
-  margin-bottom: 28px;
+  padding: 48px 48px 48px 52px;
+  margin-bottom: 32px;
   border: 1px solid var(--border-strong);
   border-left-width: 4px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
-  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+  transition: box-shadow 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+  max-width: 100%;
 }
 
 #load-video.section { border-left-color: #6366f1; }
@@ -271,26 +282,28 @@ body {
 #production-planner.section { border-left-color: #f59e0b; }
 
 .section:hover {
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.45);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
   border-color: #555;
+  transform: translateY(-2px);
 }
 
 .section h2 {
   color: var(--text);
-  margin-bottom: 12px;
-  font-size: 1.3rem;
-  font-weight: 600;
+  margin-bottom: 20px;
+  font-size: 2rem;
+  font-weight: 700;
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   letter-spacing: -0.02em;
 }
 
 .section .text-muted {
-  margin-bottom: 20px;
-  line-height: 1.55;
+  margin-bottom: 32px;
+  line-height: 1.7;
   max-width: 72ch;
   color: var(--text-muted);
+  font-size: 1.05rem;
 }
 
 /* ---- Search interface: input + button row ---- */
@@ -302,13 +315,14 @@ body {
   align-items: center;
 }
 
-input[type="text"] {
+input[type="text"],
+textarea {
   flex: 1;
   min-width: 260px;
-  padding: 12px 16px;
+  padding: 16px 20px;
   border: 1px solid var(--border-strong);
   border-radius: var(--radius);
-  font-size: 15px;
+  font-size: 16px;
   color: var(--text);
   transition: border-color 0.2s, box-shadow 0.2s;
   background: #171717;
@@ -332,16 +346,16 @@ input[type="text"]:disabled {
 
 /* ---- Buttons (high visibility) ---- */
 .btn {
-  padding: 12px 20px;
+  padding: 16px 28px;
   border: none;
   border-radius: var(--radius);
-  font-size: 15px;
+  font-size: 16px;
   font-weight: 600;
   cursor: pointer;
   transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   white-space: nowrap;
   color: #fff;
 }
@@ -420,17 +434,18 @@ input[type="text"]:disabled {
 /* ---- Result cards (interface card style) ---- */
 .result-card {
   background: #171717;
-  border-radius: var(--radius);
-  padding: 20px;
-  margin-bottom: 20px;
+  border-radius: var(--radius-lg);
+  padding: 32px;
+  margin-bottom: 24px;
   border: 1px solid var(--border-strong);
-  box-shadow: var(--shadow);
-  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  transition: box-shadow 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
 }
 
 .result-card:hover {
-  box-shadow: var(--shadow-md);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
   border-color: #555;
+  transform: translateY(-2px);
 }
 
 .result-header {
@@ -519,22 +534,23 @@ video {
 /* ---- AI / RAG explanation block ---- */
 .ai-explanation {
   background: #171717;
-  border-radius: var(--radius);
-  padding: 20px;
-  margin-bottom: 20px;
+  border-radius: var(--radius-lg);
+  padding: 32px;
+  margin-bottom: 32px;
   border: 1px solid var(--border-strong);
   border-left: 4px solid var(--primary);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
 }
 
 .ai-explanation h4 {
   color: var(--text);
-  margin-bottom: 10px;
-  margin-top: 16px;
-  font-size: 1rem;
-  font-weight: 600;
+  margin-bottom: 16px;
+  margin-top: 24px;
+  font-size: 1.25rem;
+  font-weight: 700;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
 }
 
 .ai-explanation h4:first-child {
@@ -553,11 +569,12 @@ video {
   background: var(--surface);
   border: 1px solid var(--border-strong);
   color: var(--text);
-  padding: 8px 16px;
+  padding: 12px 20px;
   border-radius: var(--radius-full);
   cursor: pointer;
-  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
-  font-size: 14px;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease, transform 0.15s ease;
+  font-size: 15px;
+  font-weight: 500;
   user-select: none;
 }
 
@@ -565,6 +582,8 @@ video {
   background: var(--primary-light);
   border-color: var(--primary);
   color: var(--primary);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
 }
 
 /* ---- Loading spinner ---- */

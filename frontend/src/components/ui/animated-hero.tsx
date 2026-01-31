@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { MoveRight, Video } from "lucide-react";
+import { MoveRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 function Hero() {
@@ -27,7 +27,7 @@ function Hero() {
         <div className="flex gap-10 py-24 lg:py-44 items-center justify-center flex-col">
           <div>
             <Button variant="secondary" size="sm" className="gap-2 text-muted-foreground hover:text-foreground" asChild>
-              <a href="#load-video">
+              <a href="#how-it-works">
                 How it works <MoveRight className="w-4 h-4" />
               </a>
             </Button>
@@ -67,18 +67,6 @@ function Hero() {
                 Search with your own words—like “before the goal” or “when they celebrate.” Get short clips and clear answers.
               </span>
             </p>
-          </div>
-          <div className="flex flex-row gap-3 flex-wrap justify-center">
-            <Button size="lg" className="gap-2" variant="outline" asChild>
-              <a href="#load-video">
-                <Video className="w-4 h-4" /> Add a video
-              </a>
-            </Button>
-            <Button size="lg" className="gap-2 shadow-lg shadow-primary/20" asChild>
-              <a href="#basic-search">
-                Search now <MoveRight className="w-4 h-4" />
-              </a>
-            </Button>
           </div>
         </div>
       </div>

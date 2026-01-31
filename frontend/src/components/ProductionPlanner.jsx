@@ -47,7 +47,7 @@ const ProductionPlanner = () => {
   return (
     <section id="production-planner" className="section">
       <h2>📋 Production Planner</h2>
-      <p className="text-muted" style={{ marginBottom: '16px' }}>
+      <p className="text-muted" style={{ marginBottom: '32px', fontSize: '1.1rem' }}>
         Enter your script and budget to get a complete production breakdown with scene analysis, budget allocation, safety requirements, and risk assessment.
       </p>
 
