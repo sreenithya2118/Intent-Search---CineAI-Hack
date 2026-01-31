@@ -55,10 +55,10 @@ const RAGSearch = () => {
   }
 
   return (
-    <div className="section">
-      <h2>🤖 RAG-Enhanced Search</h2>
+    <section id="rag-search" className="section">
+      <h2>🤖 RAG over vector store</h2>
       <p className="text-muted">
-        Step 1: Enter a query and get better prompts. Step 2: Choose a prompt to search for more accurate results.
+        Step 1: Your query → light retrieval over ChromaDB → LLM generates suggestion prompts (temporal intent + emotion, grounded in retrieved captions). Step 2: Pick a prompt → full retrieval + LLM explanation and summary (Ollama or OpenAI). Results include clips and follow-up prompt suggestions.
       </p>
       <div className="input-group">
         <input
@@ -67,7 +67,7 @@ const RAGSearch = () => {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onKeyPress={(e) => e.key === 'Enter' && !loadingSuggestions && !loading && handleGetSuggestions()}
-          placeholder="Enter query (e.g., 'crowd celebrating after goal')"
+          placeholder="e.g. crowd celebrating after goal, before the score"
           disabled={loadingSuggestions || loading}
         />
         <button className="btn btn-secondary" onClick={handleGetSuggestions} disabled={loadingSuggestions || loading}>
@@ -98,9 +98,9 @@ const RAGSearch = () => {
         )}
         {preSuggestions && preSuggestions.length > 0 && !loading && (
           <div className="ai-explanation" style={{ marginBottom: '20px' }}>
-            <h4>💡 Better prompts for more accurate results</h4>
+            <h4>💡 Suggestion prompts (intent + emotion, from vector DB)</h4>
             <p className="text-muted">
-              Choose a prompt below — then we&apos;ll search the RAG model with it.
+              Pick one to run retrieval + generation.
             </p>
             <div className="suggestions">
               {preSuggestions.map((suggestion, idx) => (
@@ -124,7 +124,7 @@ const RAGSearch = () => {
         {ragData && (
           <>
             <div className="ai-explanation">
-              <h4>💡 AI Explanation</h4>
+              <h4>💡 RAG explanation</h4>
               <p className="text-muted" style={{ lineHeight: 1.6 }}>
                 {ragData.explanation || 'No explanation available.'}
               </p>
@@ -134,9 +134,9 @@ const RAGSearch = () => {
               </p>
               {ragData.suggestions && ragData.suggestions.length > 0 && (
                 <>
-                  <h4>💡 Suggested prompts for best results</h4>
+                  <h4>💡 Suggested prompts (next queries)</h4>
                   <p className="text-muted">
-                    Click a prompt to search with it and get the best results.
+                    Click to run retrieval with that prompt.
                   </p>
                   <div className="suggestions">
                     {ragData.suggestions.map((suggestion, idx) => (
@@ -163,13 +163,13 @@ const RAGSearch = () => {
               </>
             ) : (
               <div className="empty-state">
-                <p>No matching video clips found. Try one of the suggested prompts above for better results, or rephrase your search.</p>
+                <p>No clips above similarity threshold. Try suggested prompts or rephrase.</p>
               </div>
             )}
           </>
         )}
       </div>
-    </div>
+    </section>
   )
 }
 

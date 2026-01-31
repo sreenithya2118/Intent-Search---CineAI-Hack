@@ -1,11 +1,13 @@
 export default function Footer() {
   const stack = [
     'FastAPI',
-    'React',
-    'ChromaDB',
-    'Sentence Transformers',
+    'yt-dlp',
+    'ffmpeg',
     'Vit-GPT2',
-    'RAG',
+    'SBERT',
+    'ChromaDB',
+    'Ollama / OpenAI',
+    'React',
   ]
   return (
     <footer className="app-footer">
@@ -18,10 +20,10 @@ export default function Footer() {
         </div>
         <div className="footer-meta">
           <p className="footer-copy">
-            Semantic Video Search — dense retrieval, temporal intent, RAG over vector store.
+            Semantic Video Search: ingest → frame extraction (5 FPS) → image captioning (encoder–decoder) → sentence embeddings (cosine similarity) → vector store. Temporal intent (before/after/during) for clip boundaries; RAG over retrieved captions for explanations and suggestion prompts.
           </p>
           <p className="footer-legal">
-            © {new Date().getFullYear()} — Frame-level captioning &amp; embedding-based search.
+            © {new Date().getFullYear()} — Frame-level captioning, dense retrieval &amp; RAG over ChromaDB.
           </p>
         </div>
       </div>

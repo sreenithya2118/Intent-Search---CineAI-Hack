@@ -24,6 +24,130 @@
   box-sizing: border-box;
 }
 
+/* ---- Header ---- */
+.app-header {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 0 24px;
+}
+
+.header-inner {
+  max-width: 960px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 56px;
+}
+
+.header-logo {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  text-decoration: none;
+  color: var(--text);
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+
+.header-logo:hover {
+  color: var(--primary);
+}
+
+.header-logo:hover .header-tagline {
+  color: var(--text-muted);
+}
+
+.header-logo-icon {
+  font-size: 1.4rem;
+}
+
+.header-tagline {
+  font-size: 0.75rem;
+  font-weight: 400;
+  color: var(--text-muted);
+  opacity: 0.9;
+}
+
+.header-nav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.header-nav-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: var(--radius);
+  color: var(--text-muted);
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: color 0.15s, background 0.15s;
+}
+
+.header-nav-link:hover {
+  color: var(--text);
+  background: var(--surface-alt);
+}
+
+.header-nav-icon {
+  opacity: 0.85;
+}
+
+/* ---- Footer ---- */
+.app-footer {
+  margin-top: 48px;
+  padding: 32px 24px;
+  background: var(--surface-alt);
+  border-top: 1px solid var(--border);
+}
+
+.footer-inner {
+  max-width: 960px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.footer-stack {
+  margin-bottom: 16px;
+}
+
+.footer-stack-label {
+  font-weight: 600;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  margin-right: 8px;
+}
+
+.footer-stack-list {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.footer-meta {
+  margin-top: 16px;
+}
+
+.footer-copy {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  line-height: 1.5;
+  margin-bottom: 8px;
+}
+
+.footer-legal {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  opacity: 0.9;
+}
+
 body {
   font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, sans-serif;
   background: var(--surface-alt);

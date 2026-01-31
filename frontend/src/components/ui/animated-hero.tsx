@@ -63,8 +63,8 @@ function Hero() {
             </h1>
 
             <p className="text-lg md:text-xl leading-relaxed tracking-tight text-muted-foreground max-w-2xl text-center">
-              Frame-level captioning, dense retrieval over ChromaDB, and temporal intent (before/after/during). 
-              Query in natural language; get trimmed clips with RAG-generated explanations and suggestion prompts grounded in the vector store.
+              Ingest a YouTube URL; we run frame extraction (ffmpeg, 5 FPS), Vit-GPT2 image captioning, and SBERT embeddings into ChromaDB (cosine space). 
+              Query with natural language and temporal intent (before/after/during); retrieve by dense similarity, get trimmed MP4 clips and RAG-generated explanations grounded in the vector store.
             </p>
           </div>
           <div className="flex flex-row gap-3">

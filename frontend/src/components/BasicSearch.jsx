@@ -29,15 +29,18 @@ const BasicSearch = () => {
   }
 
   return (
-    <div className="section">
-      <h2>🔍 Basic Search</h2>
+    <section id="basic-search" className="section">
+      <h2>🔍 Intent-based retrieval</h2>
+      <p className="text-muted" style={{ marginBottom: '16px' }}>
+        Dense retrieval over frame captions in embedding space (cosine similarity). Temporal intent (before / after / during) segments the timeline and adjusts clip boundaries; results return trimmed MP4 clips and optional YouTube deep links.
+      </p>
       <div className="input-group">
         <input
           type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onKeyPress={(e) => e.key === 'Enter' && !loading && handleSearch()}
-          placeholder="Enter search query (e.g., 'before crowd celebrating')"
+          placeholder="e.g. before goal, crowd celebrating, after whistle"
           disabled={loading}
         />
         <button className="btn btn-primary" onClick={handleSearch} disabled={loading}>
@@ -49,7 +52,7 @@ const BasicSearch = () => {
           ) : (
             <>
               <span>🔎</span>
-              <span>Search</span>
+              <span>Retrieve</span>
             </>
           )}
         </button>
@@ -63,14 +66,14 @@ const BasicSearch = () => {
         )}
         {!loading && results.length === 0 && query && (
           <div className="empty-state">
-            <p>No results found. Try a different query.</p>
+            <p>No hits above threshold. Try rephrasing or lowering similarity threshold.</p>
           </div>
         )}
         {!loading && results.map((item, index) => (
           <ResultCard key={index} item={item} index={index + 1} />
         ))}
       </div>
-    </div>
+    </section>
   )
 }
 

@@ -46,15 +46,18 @@ const VideoLoader = () => {
   }
 
   return (
-    <div className="section">
-      <h2>🔄 Load Video</h2>
+    <section id="load-video" className="section">
+      <h2>🔄 Ingest pipeline</h2>
+      <p className="text-muted" style={{ marginBottom: '16px' }}>
+        YouTube URL → yt-dlp download → ffmpeg frame extraction (5 FPS) → Vit-GPT2 image captioning (encoder–decoder) → SBERT sentence embeddings → ChromaDB persistence (cosine similarity). Index is built per video; run once before retrieval.
+      </p>
       <div className="input-group">
         <input
           type="text"
           value={videoUrl}
           onChange={(e) => setVideoUrl(e.target.value)}
           onKeyPress={(e) => e.key === 'Enter' && !loading && processVideo()}
-          placeholder="Paste YouTube URL here (e.g., https://www.youtube.com/watch?v=...)"
+          placeholder="YouTube URL (e.g. https://www.youtube.com/watch?v=...)"
           disabled={loading}
         />
         <button
@@ -70,7 +73,7 @@ const VideoLoader = () => {
           ) : (
             <>
               <span>📥</span>
-              <span>Load Video</span>
+              <span>Ingest video</span>
             </>
           )}
         </button>
@@ -86,7 +89,7 @@ const VideoLoader = () => {
           <span>Status: {status.message}</span>
         </div>
       )}
-    </div>
+    </section>
   )
 }
 
