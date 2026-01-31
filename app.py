@@ -9,16 +9,25 @@ from pydantic import BaseModel
 # RAG imports
 try:
     from rag_search import rag_search
-    from vector_store import load_captions_to_vector_db
+    from vector_store import load_captions_to_vector_db, ensure_vector_db_loaded
     RAG_AVAILABLE = True
 except ImportError as e:
     print(f"⚠️ RAG modules not available: {e}")
     RAG_AVAILABLE = False
+    ensure_vector_db_loaded = None
 
 class VideoRequest(BaseModel):
     url: str
 
 app = FastAPI()
+
+
+@app.on_event("startup")
+def startup():
+    """Keep RAG ready: if vector DB is empty but captions exist, load them."""
+    if RAG_AVAILABLE and ensure_vector_db_loaded:
+        ensure_vector_db_loaded()
+
 
 from semantic_search import search_frames, load_data
 

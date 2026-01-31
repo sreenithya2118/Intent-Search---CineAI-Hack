@@ -4,11 +4,17 @@ from sentence_transformers import SentenceTransformer
 import os
 import re
 
+# Path fixed to this package dir so chroma_db is always Intent_search_AI/chroma_db
+# regardless of where uvicorn is started (avoids empty DB when cwd differs)
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+CHROMA_PATH = os.path.join(BASE_DIR, "chroma_db")
+CAPTIONS_PATH = os.path.join(BASE_DIR, "captions.txt")
+
 # Initialize embedding model (same as semantic_search.py)
 embedding_model = SentenceTransformer("all-MiniLM-L6-v2")
 
 # Initialize ChromaDB (new client API - PersistentClient for local persistence)
-client = chromadb.PersistentClient(path="./chroma_db")
+client = chromadb.PersistentClient(path=CHROMA_PATH)
 
 # Use cosine distance so "1 - distance" = cosine similarity (matches sentence-transformers)
 collection = client.get_or_create_collection(
@@ -18,7 +24,7 @@ collection = client.get_or_create_collection(
 
 def load_captions_to_vector_db():
     """Load captions.txt into vector database"""
-    if not os.path.exists("captions.txt"):
+    if not os.path.exists(CAPTIONS_PATH):
         print("⚠️ captions.txt not found.")
         return
     
@@ -35,8 +41,8 @@ def load_captions_to_vector_db():
     frames = []
     ids = []
     
-    # Read captions
-    with open("captions.txt", "r") as f:
+    # Read captions (use fixed path so it works regardless of cwd)
+    with open(CAPTIONS_PATH, "r") as f:
         for idx, line in enumerate(f):
             if ": " in line:
                 frame, caption = line.strip().split(": ", 1)
@@ -80,6 +86,17 @@ def load_captions_to_vector_db():
         print(f"  Stored {batch_end}/{len(captions)} captions...")
     
     print(f"✅ Stored {len(captions)} captions in vector database")
+
+
+def ensure_vector_db_loaded():
+    """If chroma_db is empty but captions.txt exists, load it. Keeps RAG ready on every startup."""
+    try:
+        if collection.count() == 0 and os.path.exists(CAPTIONS_PATH):
+            print("🔄 Vector DB empty but captions.txt found — loading for RAG search...")
+            load_captions_to_vector_db()
+    except Exception as e:
+        print(f"⚠️ ensure_vector_db_loaded: {e}")
+
 
 def search_vector_db(query, top_k=10, threshold=0.4):
     """Search vector database for similar captions"""
