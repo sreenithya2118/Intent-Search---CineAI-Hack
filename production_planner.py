@@ -26,7 +26,7 @@ except Exception as e:
     GROQ_AVAILABLE = False
     client = None
 
-PRODUCTION_PROMPT = """You are a professional film production planner and line producer.
+PRODUCTION_PROMPT = """You are a professional film production planner, line producer, and risk assessment expert.
 
 TASK:
 Given:
@@ -37,6 +37,7 @@ Your job is to analyze the script and produce a complete production breakdown th
 - Scene division
 - Budget allocation
 - Safety requirements
+- Risk identification and classification
 
 INSTRUCTIONS:
 
@@ -71,7 +72,18 @@ Step 3: Safety Requirements
   - Crowd management
   - Fire, water, heights, vehicles, weapons, or animals (if applicable)
 
-Step 4: Budget Optimization Check
+Step 4: Risk Identification & Classification
+- Identify potential risks for each scene.
+- Classify each risk as:
+  - Low
+  - Medium
+  - High
+- For each risk, provide:
+  - Risk description
+  - Risk level
+  - Mitigation strategy
+
+Step 5: Budget Optimization Check
 - Verify that the entire production stays within budget.
 - If a scene is high-cost:
   - Suggest cost-saving alternatives without affecting story quality.
@@ -101,6 +113,13 @@ Return the response strictly in valid JSON using the following structure:
       },
       "safety_measures": [
         string
+      ],
+      "risks": [
+        {
+          "risk_description": string,
+          "risk_level": "Low | Medium | High",
+          "mitigation": string
+        }
       ]
     }
   ],
@@ -125,7 +144,7 @@ def generate_production_plan(script_text: str, total_budget: float):
         }
     
     try:
-        prompt = f"{PRODUCTION_PROMPT}\n\nScript:\n{script_text}\n\nTotal Budget: ${total_budget:,.2f}"
+        prompt = f"{PRODUCTION_PROMPT}\n\nScript:\n{script_text}\n\nTotal Budget: ₹{total_budget:,.2f} (Indian Rupees)"
         
         model = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
         
@@ -153,10 +172,6 @@ def generate_production_plan(script_text: str, total_budget: float):
         # Validate structure
         if "scenes" not in result or "total_budget" not in result:
             return {"error": "Invalid response format from AI"}
-        
-        # Remove risk data from each scene (risk dashboard removed from UI)
-        for scene in result.get("scenes", []):
-            scene.pop("risks", None)
         
         return result
         

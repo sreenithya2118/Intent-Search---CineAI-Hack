@@ -3,10 +3,10 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsive
 const COLORS = ['#6366f1', '#10b981', '#8b5cf6', '#f59e0b', '#ef4444', '#06b6d4']
 
 const BudgetDashboard = ({ data }) => {
-  // Prepare scene budget data
+  // Prepare scene budget data (ensure numeric for chart and axis)
   const sceneData = data.scenes.map(scene => ({
     name: `Scene ${scene.scene_number}`,
-    budget: scene.budget.total_scene_budget
+    budget: Number(scene.budget.total_scene_budget) || 0
   }))
 
   // Prepare category breakdown (aggregate across all scenes)
@@ -30,7 +30,17 @@ const BudgetDashboard = ({ data }) => {
     value: value
   }))
 
-  const formatCurrency = (value) => `$${value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+  const formatCurrency = (value) => `₹${Number(value).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+
+  // Compact form for Y-axis ticks so budget values show fully (no truncation)
+  const formatAxisCurrency = (value) => {
+    const n = Number(value)
+    if (Number.isNaN(n)) return '₹0'
+    if (n >= 10000000) return `₹${(n / 10000000).toFixed(1)}Cr`
+    if (n >= 100000) return `₹${(n / 100000).toFixed(1)}L`
+    if (n >= 1000) return `₹${(n / 1000).toFixed(0)}k`
+    return `₹${n.toFixed(0)}`
+  }
 
   return (
     <div style={{ marginBottom: '32px' }}>
@@ -98,15 +108,20 @@ const BudgetDashboard = ({ data }) => {
       }}>
         <h4 style={{ color: 'var(--text)', marginBottom: '16px' }}>Budget by Scene</h4>
         <ResponsiveContainer width="100%" height={300}>
-          <BarChart data={sceneData}>
+          <BarChart data={sceneData} margin={{ left: 20, right: 20 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
             <XAxis dataKey="name" stroke="var(--text-muted)" />
-            <YAxis stroke="var(--text-muted)" tickFormatter={formatCurrency} />
+            <YAxis 
+              stroke="var(--text-muted)" 
+              tickFormatter={formatAxisCurrency}
+              width={70}
+              tick={{ fontSize: 12 }}
+            />
             <Tooltip 
               formatter={(value) => formatCurrency(value)}
               contentStyle={{ background: '#1a1a1a', border: '1px solid var(--border)', color: 'var(--text)' }}
             />
-            <Bar dataKey="budget" fill="#6366f1" />
+            <Bar dataKey="budget" fill="#6366f1" name="Budget" />
           </BarChart>
         </ResponsiveContainer>
       </div>

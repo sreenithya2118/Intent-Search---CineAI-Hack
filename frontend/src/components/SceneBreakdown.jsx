@@ -2,7 +2,7 @@ import { useState } from 'react'
 
 const SceneBreakdown = ({ data }) => {
   const [selectedSceneIndex, setSelectedSceneIndex] = useState(null)
-  const formatCurrency = (value) => `$${value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+  const formatCurrency = (value) => `₹${Number(value).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 
   const scenes = data.scenes || []
 

@@ -9,9 +9,10 @@ const RiskDashboard = ({ data }) => {
 
   // Count risks by level
   const riskCounts = { Low: 0, Medium: 0, High: 0 }
+  const scenes = data?.scenes || []
   
-  data.scenes.forEach(scene => {
-    scene.risks.forEach(risk => {
+  scenes.forEach(scene => {
+    (scene.risks || []).forEach(risk => {
       riskCounts[risk.risk_level] = (riskCounts[risk.risk_level] || 0) + 1
     })
   })
@@ -25,8 +26,8 @@ const RiskDashboard = ({ data }) => {
   // Get all risks with scene info
   const allRisks = useMemo(() => {
     const list = []
-    data.scenes.forEach(scene => {
-      scene.risks.forEach(risk => {
+    scenes.forEach(scene => {
+      (scene.risks || []).forEach(risk => {
         list.push({
           ...risk,
           scene_number: scene.scene_number,
@@ -35,7 +36,7 @@ const RiskDashboard = ({ data }) => {
       })
     })
     return list
-  }, [data.scenes])
+  }, [scenes])
 
   // Filter risks by level and scene search
   const filteredRisks = useMemo(() => {
