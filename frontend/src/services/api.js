@@ -51,5 +51,13 @@ export const videoAPI = {
   },
 }
 
+export const productionAPI = {
+  // Generate production plan
+  generatePlan: async (script, budget) => {
+    const response = await api.post('/production-plan', { script, budget })
+    return response.data
+  },
+}
+
 export default api
 

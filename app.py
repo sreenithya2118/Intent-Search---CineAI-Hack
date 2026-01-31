@@ -21,8 +21,20 @@ except ImportError as e:
     search_vector_db = None
     generate_suggestions_from_vector_db = None
 
+# Production Planner imports
+try:
+    from production_planner import generate_production_plan
+    PRODUCTION_PLANNER_AVAILABLE = True
+except ImportError as e:
+    print(f"⚠️ Production planner not available: {e}")
+    PRODUCTION_PLANNER_AVAILABLE = False
+
 class VideoRequest(BaseModel):
     url: str
+
+class ProductionPlanRequest(BaseModel):
+    script: str
+    budget: float
 
 app = FastAPI()
 
@@ -145,3 +157,10 @@ if RAG_AVAILABLE:
     def rag_search_endpoint(query: str):
         """RAG-enhanced search with explanations (run after user picks a suggestion)."""
         return rag_search(query)
+
+# Production Planner endpoints
+if PRODUCTION_PLANNER_AVAILABLE:
+    @app.post("/production-plan")
+    def production_plan_endpoint(req: ProductionPlanRequest):
+        """Generate production breakdown from script and budget"""
+        return generate_production_plan(req.script, req.budget)

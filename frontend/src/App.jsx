@@ -4,6 +4,7 @@ import Header from './components/Header'
 import Footer from './components/Footer'
 import VideoLoader from './components/VideoLoader'
 import RAGSearch from './components/RAGSearch'
+import ProductionPlanner from './components/ProductionPlanner'
 import './App.css'
 
 function App() {
@@ -33,6 +34,7 @@ function App() {
           <VideoLoader />
           {/* <BasicSearch /> */}
           <RAGSearch />
+          <ProductionPlanner />
         </main>
       </div>
       <Footer />

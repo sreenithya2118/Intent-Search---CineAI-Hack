@@ -241,6 +241,7 @@ body {
 #load-video.section { border-left-color: #6366f1; }
 #basic-search.section { border-left-color: #10b981; }
 #rag-search.section { border-left-color: #8b5cf6; }
+#production-planner.section { border-left-color: #f59e0b; }
 
 .section:hover {
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.45);
