@@ -220,13 +220,47 @@ def search_vector_db(query, top_k=10, threshold=0.4):
         return []
 
 
+def get_sample_captions_for_suggestions(query: str, limit: int = 15):
+    """
+    Get caption samples from the DB for suggestion generation.
+    Uses threshold=0 so we always get the 'closest' captions even when query doesn't match well.
+    This ensures suggestions reflect ACTUAL video content (e.g. Spiderman) not hardcoded fallbacks.
+    """
+    try:
+        count = collection.count()
+        if count == 0:
+            return []
+        query_embedding = embedding_model.encode(query).tolist()
+        results = collection.query(
+            query_embeddings=[query_embedding],
+            n_results=min(limit, count),
+            include=["documents", "metadatas", "distances"]
+        )
+        out = []
+        for doc, metadata, distance in zip(
+            results["documents"][0],
+            results["metadatas"][0],
+            results["distances"][0]
+        ):
+            out.append({
+                "caption": doc,
+                "score": 1 - distance,
+                "timestamp": metadata.get("timestamp", 0.0),
+                "frame": metadata.get("frame", "")
+            })
+        return out
+    except Exception as e:
+        print(f"⚠️ Error getting sample captions: {e}")
+        return []
+
+
 def load_transcriptions_to_vector_db(append_only=False):
     """
     Load audio_transcriptions.txt into vector database.
     append_only: If True, only add new transcriptions (by ID), don't clear existing.
     """
     if not os.path.exists(TRANSCRIPTIONS_PATH):
-        print("⚠️ audio_transcriptions.txt not found.")
+        # Not an error - file is created when audio is processed (requires openai-whisper)
         return
 
     transcriptions = []
@@ -285,16 +319,16 @@ def load_transcriptions_to_vector_db(append_only=False):
     for i in range(0, len(transcriptions), batch_size):
         batch_end = min(i + batch_size, len(transcriptions))
         
-        # Extract clip_id from transcription ID
+        # Extract clip_id from transcription ID (zero-pad to 3 digits for consistency)
         clip_ids = []
         for tid in trans_ids[i:batch_end]:
             m = re.match(r"clip_(\d+)_audio", tid)
             if m:
-                clip_ids.append(f"clip_{m.group(1)}")
+                clip_ids.append(f"clip_{m.group(1).zfill(3)}")
             else:
                 m = re.match(r"youtube_(\d+)_audio", tid)
                 if m:
-                    clip_ids.append(f"youtube_{m.group(1)}")
+                    clip_ids.append(f"youtube_{m.group(1).zfill(3)}")
                 else:
                     clip_ids.append("0")
         
@@ -337,12 +371,22 @@ def search_audio_vector_db(query, top_k=10, threshold=0.4):
             if score < threshold:
                 continue
             
+            cid = metadata.get("clip_id", "0")
+            if cid == "0":
+                tid = metadata.get("transcription_id", "")
+                m = re.match(r"clip_(\d+)_audio", tid)
+                if m:
+                    cid = f"clip_{m.group(1).zfill(3)}"
+                else:
+                    m = re.match(r"youtube_(\d+)_audio", tid)
+                    if m:
+                        cid = f"youtube_{m.group(1).zfill(3)}"
             hits.append({
                 "transcription_id": metadata.get("transcription_id", ""),
                 "text": doc,
                 "score": score,
                 "timestamp": metadata.get("timestamp", 0.0),
-                "clip_id": metadata.get("clip_id", "0")
+                "clip_id": cid
             })
         
         # Sort and cluster similar to video search
@@ -367,9 +411,10 @@ def search_audio_vector_db(query, top_k=10, threshold=0.4):
                     "end": current_clip[-1]["timestamp"],
                     "score": best_hit["score"],
                     "caption": best_hit["text"],
-                    "best_frame": "",  # Audio doesn't have frames, but we need this for compatibility
+                    "best_frame": "",
                     "frame_count": len(current_clip),
-                    "source": "audio"  # Mark as audio source
+                    "source": "audio",
+                    "clip_id": best_hit["clip_id"]  # Needed for clip generation (youtube_002, clip_001)
                 })
                 current_clip = [hit]
         
@@ -382,7 +427,8 @@ def search_audio_vector_db(query, top_k=10, threshold=0.4):
                 "caption": best_hit["text"],
                 "best_frame": "",
                 "frame_count": len(current_clip),
-                "source": "audio"
+                "source": "audio",
+                "clip_id": best_hit["clip_id"]
             })
         
         clips.sort(key=lambda x: x["score"], reverse=True)

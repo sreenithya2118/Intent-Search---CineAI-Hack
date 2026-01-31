@@ -2,7 +2,8 @@ import { useState, useRef, useEffect } from 'react'
 import { videoAPI } from '../services/api'
 import { Upload, Youtube, FileVideo, X } from 'lucide-react'
 
-const API_BASE = 'http://localhost:8000'
+// In dev, use relative paths so Vite proxy forwards to backend
+const API_BASE = import.meta.env.DEV ? '' : 'http://localhost:8000'
 
 const ACCEPTED_VIDEO = '.mp4,.mov,.webm,.avi,.mkv'
 const ACCEPTED_EXT = ['.mp4', '.mov', '.webm', '.avi', '.mkv']

@@ -81,28 +81,28 @@ def generate_suggestions(query, search_results):
     """Generate suggestion prompts that will give the best search results.
     Returns 3 concrete search queries (not generic advice) the user can click to search."""
     
-    # Fallback: actual search-query style strings (clickable prompts)
+    # Fallback: generic prompts (avoid content-specific bias like sports)
     fallback_no_results = [
-        "goal celebration moment",
-        "crowd cheering",
-        "players celebrating after score"
+        "key moment or highlight",
+        "action or reaction scene",
+        "important dialogue or event"
     ]
     fallback_with_results = [
         f"{query}",
-        "before the goal",
-        "after the goal"
+        "before the main event",
+        "after the key moment"
     ]
 
     if not OPENAI_AVAILABLE or not client:
         return fallback_no_results if not search_results else fallback_with_results[:3]
 
     if not search_results:
-        prompt = f"""User searched for: "{query}" but found no video moments.
+        prompt = f"""User searched for: "{query}" but found no exact matches.
 
-Suggest exactly 3 alternative SEARCH QUERIES that would give the best results in a video search. Each suggestion must be a short, ready-to-use search phrase (e.g. "crowd celebrating after goal", "players cheering", "fans celebrating"). Use:
-- More general or more specific wording
+Suggest exactly 3 alternative SEARCH QUERIES based on what might be in their videos. Each must be a short, ready-to-use phrase. Use:
+- More general or specific wording
 - Synonyms and related actions
-- Temporal phrases like "before the goal" or "after the score"
+- Temporal phrases like "before X" or "after Y"
 
 Return ONLY the 3 search phrases, one per line. No numbers, bullets, or explanations."""
     else:
@@ -140,9 +140,9 @@ def generate_suggestions_from_vector_db(query, vector_db_results):
     """Suggest search phrases with proper intent + emotion, grounded in vector DB captions.
     vector_db_results: list of dicts with 'caption', optionally 'start', 'end', 'score'."""
     fallback = [
-        "goal celebration moment",
-        "crowd cheering after goal",
-        "players celebrating"
+        "key action or moment",
+        "character reaction or dialogue",
+        "important scene highlight"
     ]
     if not vector_db_results:
         return generate_suggestions(query, [])
@@ -158,7 +158,7 @@ def generate_suggestions_from_vector_db(query, vector_db_results):
     if not OPENAI_AVAILABLE or not client:
         captions = [r.get("caption", "") for r in vector_db_results[:5] if r.get("caption")]
         if captions:
-            return [captions[0][:50], "before the goal", "after the goal"][:3]
+            return [captions[0][:50], "before the key moment", "after the main event"][:3]
         return fallback
 
     prompt = f"""You are a video search assistant. The user typed: "{query}"
@@ -169,9 +169,9 @@ Captions from the video:
 {context}
 
 Rules for the 3 suggestions:
-1. **Intent**: Use clear temporal intent where it fits — "before the goal", "after the score", "during the celebration", "moment before X", "reaction after X".
-2. **Emotion / action**: Include emotion or action (celebrating, cheering, tense, excited, running, scoring) so the query matches how moments are described.
-3. **Vocabulary**: Use words and phrases that appear in the captions above so the search will match.
+1. **Intent**: Use temporal intent where it fits — "before X", "after Y", "during Z", "moment when", "reaction to".
+2. **Vocabulary**: Use words and phrases from the captions above so the search will match.
+3. **Content**: Reflect what's actually in the captions (characters, actions, scenes) — NOT generic phrases.
 
 Return ONLY 3 short search phrases, one per line. No numbers, bullets, or explanations."""
 
@@ -192,6 +192,65 @@ Return ONLY 3 short search phrases, one per line. No numbers, bullets, or explan
         return cleaned[:3] if cleaned else fallback
     except Exception as e:
         print(f"⚠️ Error generating suggestions from vector DB: {e}")
+        return fallback
+
+
+def generate_suggestions_from_audio(query, audio_vector_results):
+    """Suggest search phrases for audio/dialog search, grounded in transcriptions."""
+    fallback = [
+        "when they say hello",
+        "dialogue about the mission",
+        "conversation before the action"
+    ]
+    if not audio_vector_results:
+        return generate_suggestions(query, [])
+
+    # Use transcription text (dialogs) as context
+    dialog_lines = []
+    for i, r in enumerate(audio_vector_results[:12], 1):
+        text = r.get("text", r.get("caption", ""))
+        if text:
+            dialog_lines.append(f"  {i}. \"{text[:80]}{'...' if len(text) > 80 else ''}\"")
+
+    context = "\n".join(dialog_lines) if dialog_lines else "(no dialogs)"
+
+    if not OPENAI_AVAILABLE or not client:
+        dialogs = [r.get("text", r.get("caption", ""))[:40] for r in audio_vector_results[:3] if r.get("text") or r.get("caption")]
+        return dialogs[:3] if dialogs else fallback
+
+    prompt = f"""You are an audio/dialog search assistant. The user wants to find moments by what is SAID in the video.
+
+User typed: "{query}"
+
+Below are REAL dialog lines from the video (transcriptions). Suggest 3 search queries that would find similar spoken moments.
+
+Dialog lines from the video:
+{context}
+
+Rules for the 3 suggestions:
+1. Use phrases people might SAY or search for (e.g. "when they say we did it", "dialogue about hacking", "conversation before the reveal").
+2. Include quoted phrases if the dialog suggests them.
+3. Use temporal cues: "before they say", "after the line about", "when someone mentions".
+
+Return ONLY 3 short search phrases, one per line. No numbers, bullets, or explanations."""
+
+    try:
+        response = client.chat.completions.create(
+            model=os.getenv("OPENAI_MODEL", "gpt-3.5-turbo"),
+            messages=[
+                {"role": "system", "content": "You suggest search queries for finding video moments by spoken dialogue. Output only 3 phrases, one per line."},
+                {"role": "user", "content": prompt}
+            ],
+            max_tokens=120,
+            temperature=0.6
+        )
+        raw = response.choices[0].message.content.strip()
+        suggestions = raw.split("\n")
+        cleaned = [s.strip("- ").strip().strip('"').strip("'").strip() for s in suggestions if s.strip()]
+        cleaned = [s.lstrip("0123456789.").strip() for s in cleaned]
+        return cleaned[:3] if cleaned else fallback
+    except Exception as e:
+        print(f"⚠️ Error generating audio suggestions: {e}")
         return fallback
 
 

@@ -1,4 +1,7 @@
+# Disable tokenizers parallelism before any Hugging Face imports to avoid fork deadlocks
 import os
+os.environ["TOKENIZERS_PARALLELISM"] = "false"
+
 from fastapi import FastAPI, BackgroundTasks, File, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -37,6 +40,23 @@ class ProductionPlanRequest(BaseModel):
     budget: float
 
 app = FastAPI()
+
+# CORS must be added early so all routes (including RAG/audio) get proper headers
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:5500",
+        "http://127.0.0.1:5500",
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+        "http://[::]:5500",
+        "http://[::]:5173"
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+    expose_headers=["Range", "Content-Range", "Accept-Ranges", "Content-Length"],
+)
 
 
 @app.on_event("startup")
@@ -194,23 +214,6 @@ app.mount("/clips", StaticFiles(directory="clips"), name="clips")
 app.mount("/frames", StaticFiles(directory="frames"), name="frames")
 app.mount("/source_clips", StaticFiles(directory="source_clips"), name="source_clips")
 
-# ✅ CORS FIX
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5500",
-        "http://127.0.0.1:5500",
-        "http://localhost:5173",
-        "http://127.0.0.1:5173",
-        "http://[::]:5500",
-        "http://[::]:5173"
-    ],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-    expose_headers=["Range", "Content-Range", "Accept-Ranges", "Content-Length"],
-)
-
 @app.post("/search")
 def search(query: str):
     return search_frames(query)
@@ -221,20 +224,15 @@ def intent(query: str):
 
 # RAG endpoints
 if RAG_AVAILABLE:
-    @app.post("/rag-suggestions")
-    def rag_suggestions_endpoint(query: str):
-        """Return suggestions with proper intent + emotion, grounded in vector DB captions."""
-        vector_results = []
-        if search_vector_db:
-            # Lower threshold so we get related captions for suggestion context
-            vector_results = search_vector_db(query, top_k=15, threshold=0.25)
-        suggestions = generate_suggestions_from_vector_db(query, vector_results) if generate_suggestions_from_vector_db else []
-        return {"query": query, "suggestions": suggestions}
-
     @app.post("/rag-search")
     def rag_search_endpoint(query: str):
         """RAG-enhanced search with explanations (run after user picks a suggestion)."""
         return rag_search(query)
+
+    @app.post("/audio-search")
+    def audio_search_endpoint(query: str):
+        """Audio-focused search: prioritizes dialog matches, generates clips for matched speech."""
+        return rag_search(query, audio_only=True)
 
 # Production Planner endpoints
 if PRODUCTION_PLANNER_AVAILABLE:

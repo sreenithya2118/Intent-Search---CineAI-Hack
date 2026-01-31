@@ -22,18 +22,21 @@ def _get_source_video_for_frame(best_frame: str):
     # Check for uploaded clip format
     m = re.match(r"clip_(\d+)_frame_\d+", best_frame)
     if m:
-        clip_num = m.group(1)
-        # Find actual file (could be .mp4, .mov, etc.)
+        clip_num = m.group(1).zfill(3)  # Normalize to 3 digits
         pattern = os.path.join(SOURCE_CLIPS_DIR, f"clip_{clip_num}.*")
         matches = glob.glob(pattern)
         if matches:
             return matches[0], f"clip_{clip_num}"
+        # Fallback: try unpadded (e.g. clip_1)
+        pattern2 = os.path.join(SOURCE_CLIPS_DIR, f"clip_{m.group(1)}.*")
+        matches2 = glob.glob(pattern2)
+        if matches2:
+            return matches2[0], f"clip_{m.group(1)}"
     
     # Check for YouTube format with prefix - now stored in source_clips/
     m = re.match(r"youtube_(\d+)_frame_\d+", best_frame)
     if m:
-        youtube_num = m.group(1)
-        # YouTube videos are now saved to source_clips/youtube_XXX.mp4
+        youtube_num = m.group(1).zfill(3)  # Normalize to 3 digits
         youtube_path = os.path.join(SOURCE_CLIPS_DIR, f"youtube_{youtube_num}.mp4")
         if os.path.exists(youtube_path):
             return youtube_path, f"youtube_{youtube_num}"

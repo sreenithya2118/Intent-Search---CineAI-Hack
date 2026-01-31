@@ -7,8 +7,10 @@ import json
 import re
 from datetime import datetime
 
-AUDIO_DIR = "audio_extracts"
-TRANSCRIPTIONS_FILE = "audio_transcriptions.txt"
+# Use same base dir as vector_store so transcriptions are always found
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+AUDIO_DIR = os.path.join(BASE_DIR, "audio_extracts")
+TRANSCRIPTIONS_FILE = os.path.join(BASE_DIR, "audio_transcriptions.txt")
 
 def default_logger(msg):
     print(msg)

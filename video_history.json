@@ -1,0 +1,20 @@
+{
+    "videos": [
+        {
+            "type": "youtube",
+            "url": "https://www.youtube.com/watch?v=GlunZpix30I",
+            "video_id": "GlunZpix30I",
+            "prefix": "youtube_001",
+            "video_path": "source_clips/youtube_001.mp4",
+            "processed_at": "2026-02-01T01:18:41.585005"
+        },
+        {
+            "type": "youtube",
+            "url": "https://www.youtube.com/watch?v=C7OQHIpDlvA",
+            "video_id": "C7OQHIpDlvA",
+            "prefix": "youtube_002",
+            "video_path": "source_clips/youtube_002.mp4",
+            "processed_at": "2026-02-01T02:40:58.001936"
+        }
+    ]
+}

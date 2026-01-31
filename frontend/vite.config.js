@@ -19,7 +19,10 @@ export default defineConfig({
         target: 'http://localhost:8000',
         changeOrigin: true,
         rewrite: (path) => path.replace(/^\/api/, '')
-      }
+      },
+      '/clips': { target: 'http://localhost:8000', changeOrigin: true },
+      '/frames': { target: 'http://localhost:8000', changeOrigin: true },
+      '/source_clips': { target: 'http://localhost:8000', changeOrigin: true }
     }
   }
 })

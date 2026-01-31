@@ -5,43 +5,16 @@ import { Search, Headphones } from 'lucide-react'
 
 const RAGSearch = () => {
   const [query, setQuery] = useState('')
-  const [preSuggestions, setPreSuggestions] = useState(null)
   const [ragData, setRagData] = useState(null)
   const [loading, setLoading] = useState(false)
-  const [loadingSuggestions, setLoadingSuggestions] = useState(false)
   const [searchMode, setSearchMode] = useState('multimodal') // 'multimodal' or 'audio'
 
-  // Step 1: Get better-sentence suggestions (before searching)
-  const handleGetSuggestions = async () => {
-    const q = query.trim()
-    if (!q) {
+  const handleSearch = async () => {
+    const searchQuery = query.trim()
+    if (!searchQuery) {
       alert('⚠️ Please enter a search query')
       return
     }
-    setLoadingSuggestions(true)
-    setPreSuggestions(null)
-    setRagData(null)
-    try {
-      const data = await videoAPI.getRAGSuggestions(q)
-      setPreSuggestions(data.suggestions || [])
-    } catch (error) {
-      console.error('RAG suggestions error:', error)
-      setPreSuggestions(null)
-      alert('❌ Error: ' + (error.message || 'Unknown error'))
-    } finally {
-      setLoadingSuggestions(false)
-    }
-  }
-
-  // Step 2: Run RAG search (after user picks a suggestion)
-  const handleRAGSearch = async (chosenPrompt) => {
-    const searchQuery = (chosenPrompt != null ? chosenPrompt : query).trim()
-    if (!searchQuery) {
-      alert('⚠️ Please enter or choose a search query')
-      return
-    }
-    if (chosenPrompt != null) setQuery(chosenPrompt)
-    setPreSuggestions(null)
     setLoading(true)
     setRagData(null)
     try {
@@ -70,9 +43,8 @@ const RAGSearch = () => {
           onClick={() => {
             setSearchMode('multimodal')
             setRagData(null)
-            setPreSuggestions(null)
           }}
-          disabled={loading || loadingSuggestions}
+          disabled={loading}
         >
           <Search size={18} />
           <span>Multimodal Search</span>
@@ -82,9 +54,8 @@ const RAGSearch = () => {
           onClick={() => {
             setSearchMode('audio')
             setRagData(null)
-            setPreSuggestions(null)
           }}
-          disabled={loading || loadingSuggestions}
+          disabled={loading}
         >
           <Headphones size={18} />
           <span>Audio Search</span>
@@ -97,17 +68,12 @@ const RAGSearch = () => {
           type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          onKeyPress={(e) => e.key === 'Enter' && !loadingSuggestions && !loading && handleGetSuggestions()}
+          onKeyPress={(e) => e.key === 'Enter' && !loading && handleSearch()}
           placeholder={searchMode === 'audio' ? "e.g. when they say hello, dialogue about the mission" : "e.g. crowd celebrating after goal"}
-          disabled={loadingSuggestions || loading}
+          disabled={loading}
         />
-        <button className="btn btn-secondary" onClick={handleGetSuggestions} disabled={loadingSuggestions || loading}>
-          {loadingSuggestions ? (
-            <>
-              <span className="loading"></span>
-              <span>Finding better search phrases...</span>
-            </>
-          ) : loading ? (
+        <button className="btn btn-secondary" onClick={handleSearch} disabled={loading}>
+          {loading ? (
             <>
               <span className="loading"></span>
               <span>Searching...</span>
@@ -121,31 +87,6 @@ const RAGSearch = () => {
         </button>
       </div>
       <div className="results">
-        {loadingSuggestions && (
-          <div className="loading-block">
-            <div className="loading"></div>
-            <p>Finding better ways to search...</p>
-          </div>
-        )}
-        {preSuggestions && preSuggestions.length > 0 && !loading && (
-          <div className="ai-explanation" style={{ marginBottom: '20px' }}>
-            <h4>💡 Try one of these</h4>
-            <p className="text-muted">
-              Click a phrase to search with it.
-            </p>
-            <div className="suggestions">
-              {preSuggestions.map((suggestion, idx) => (
-                <div
-                  key={idx}
-                  className="suggestion-chip"
-                  onClick={() => handleRAGSearch(suggestion)}
-                >
-                  {suggestion}
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
         {loading && (
           <div className="loading-block">
             <div className="loading"></div>
@@ -163,25 +104,6 @@ const RAGSearch = () => {
               <p className="text-muted" style={{ lineHeight: 1.6 }}>
                 {ragData.summary || 'No summary available.'}
               </p>
-              {ragData.suggestions && ragData.suggestions.length > 0 && (
-                <>
-                  <h4>💡 Try searching for</h4>
-                  <p className="text-muted">
-                    Click to search with that phrase.
-                  </p>
-                  <div className="suggestions">
-                    {ragData.suggestions.map((suggestion, idx) => (
-                      <div
-                        key={idx}
-                        className="suggestion-chip"
-                        onClick={() => handleRAGSearch(suggestion)}
-                      >
-                        {suggestion}
-                      </div>
-                    ))}
-                  </div>
-                </>
-              )}
             </div>
             {ragData.results && ragData.results.length > 0 ? (
               <>
@@ -198,7 +120,7 @@ const RAGSearch = () => {
                 <p>
                   {searchMode === 'audio' 
                     ? 'No audio transcriptions found. Make sure videos have been processed with audio transcription.'
-                    : 'No clips found. Try another phrase or use the suggestions above.'}
+                    : 'No clips found. Try another phrase.'}
                 </p>
               </div>
             )}

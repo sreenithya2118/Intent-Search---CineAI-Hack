@@ -1,6 +1,7 @@
 import axios from 'axios'
 
-const API_BASE_URL = 'http://localhost:8000'
+// In dev, use Vite proxy (/api -> localhost:8000) to avoid CORS. In prod, use full URL.
+const API_BASE_URL = import.meta.env.DEV ? '/api' : (import.meta.env.VITE_API_URL || 'http://localhost:8000')
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -44,13 +45,7 @@ export const videoAPI = {
     return response.data
   },
 
-  // Get better-sentence suggestions before RAG search (step 1)
-  getRAGSuggestions: async (query) => {
-    const response = await api.post(`/rag-suggestions?query=${encodeURIComponent(query)}`)
-    return response.data
-  },
-
-  // RAG search (step 2: run after user picks a suggestion)
+  // RAG search
   ragSearch: async (query) => {
     const response = await api.post(`/rag-search?query=${encodeURIComponent(query)}`)
     return response.data
