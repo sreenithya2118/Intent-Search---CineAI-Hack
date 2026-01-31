@@ -56,15 +56,14 @@ from semantic_search import search_frames, load_data
 # Global status
 processing_status = {"state": "idle", "message": ""}
 
-def update_status(msg):
+def update_status(msg, append_vector_db=False):
     global processing_status
     if msg == "COMPLETED":
         print("🔄 processing complete. Reloading search index...")
         load_data()  # Reload embeddings (old method)
-        # Also load to vector DB if RAG is available
         if RAG_AVAILABLE:
             try:
-                load_captions_to_vector_db()
+                load_captions_to_vector_db(append_only=append_vector_db)
             except Exception as e:
                 print(f"⚠️ Vector DB load failed: {e}")
         processing_status = {"state": "completed", "message": "Done! Search now."}
@@ -103,12 +102,28 @@ async def process_clips_endpoint(
     if not file_data:
         return {"error": "No valid video files (supported: mp4, mov, webm, avi, mkv)"}
     processing_status = {"state": "starting", "message": f"Processing {len(file_data)} clip(s)..."}
-    background_tasks.add_task(process_clips_logic, file_data, update_status)
+    def update_status_clips(msg):
+        update_status(msg, append_vector_db=(msg == "COMPLETED"))
+    background_tasks.add_task(process_clips_logic, file_data, update_status_clips)
     return {"status": "started", "file_count": len(file_data)}
 
 @app.get("/process-status")
 def get_status():
     return processing_status
+
+@app.get("/source-clips-list")
+def list_source_clips():
+    """Return list of uploaded clips in source_clips for UI display."""
+    clips_dir = "source_clips"
+    if not os.path.exists(clips_dir):
+        return {"clips": []}
+    allowed = {".mp4", ".mov", ".webm", ".avi", ".mkv"}
+    clips = []
+    for f in sorted(os.listdir(clips_dir)):
+        ext = os.path.splitext(f)[1].lower()
+        if ext in allowed:
+            clips.append({"name": f, "url": f"/source_clips/{f}"})
+    return {"clips": clips}
 
 # Ensure dirs exist before mounting (mount happens at import, startup runs later)
 os.makedirs("source_clips", exist_ok=True)

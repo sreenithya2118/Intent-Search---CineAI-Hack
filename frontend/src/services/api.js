@@ -32,6 +32,12 @@ export const videoAPI = {
     return response.data
   },
 
+  // Get list of uploaded source clips for display
+  getSourceClips: async () => {
+    const response = await api.get('/source-clips-list')
+    return response.data
+  },
+
   // Basic search
   basicSearch: async (query) => {
     const response = await api.post(`/intent-search?query=${encodeURIComponent(query)}`)

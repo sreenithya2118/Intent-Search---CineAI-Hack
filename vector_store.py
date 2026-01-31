@@ -22,58 +22,70 @@ collection = client.get_or_create_collection(
     metadata={"hnsw:space": "cosine", "description": "Video frame captions and embeddings"}
 )
 
-def load_captions_to_vector_db():
-    """Load captions.txt into vector database"""
+def load_captions_to_vector_db(append_only=False):
+    """
+    Load captions.txt into vector database.
+    append_only: If True, only add new captions (by frame name), don't clear existing.
+    """
     if not os.path.exists(CAPTIONS_PATH):
         print("⚠️ captions.txt not found.")
         return
-    
-    # Clear existing data (optional - remove if you want to keep old data)
-    try:
-        # Delete all items in collection
-        all_ids = collection.get()["ids"]
-        if all_ids:
-            collection.delete(ids=all_ids)
-    except Exception as e:
-        print(f"⚠️ Could not clear existing data: {e}")
-    
+
     captions = []
     frames = []
     ids = []
-    
-    # Read captions (use fixed path so it works regardless of cwd)
+
     with open(CAPTIONS_PATH, "r") as f:
         for idx, line in enumerate(f):
             if ": " in line:
                 frame, caption = line.strip().split(": ", 1)
                 frames.append(frame)
                 captions.append(caption)
-                ids.append(f"frame_{idx}")
-    
+                ids.append(frame)  # Use frame filename as id for deduplication
+
     if not captions:
         print("⚠️ No captions found.")
         return
-    
-    # Generate embeddings
-    print(f"🔄 Generating embeddings for {len(captions)} captions...")
-    embeddings = embedding_model.encode(captions).tolist()
-    
+
+    # If append_only, skip frames already in the DB
+    if append_only:
+        try:
+            existing = set(collection.get()["ids"])
+            to_add = [(f, c, i) for f, c, i in zip(frames, captions, ids) if i not in existing]
+            if not to_add:
+                print("✅ No new captions to add to vector DB")
+                return
+            frames, captions, ids = zip(*to_add)
+            frames, captions, ids = list(frames), list(captions), list(ids)
+            print(f"🔄 Adding {len(captions)} new captions (skipping {len(existing)} existing)...")
+        except Exception as e:
+            print(f"⚠️ Could not check existing: {e}, doing full reload")
+            append_only = False
+
+    if not append_only:
+        try:
+            all_ids = collection.get()["ids"]
+            if all_ids:
+                collection.delete(ids=all_ids)
+        except Exception as e:
+            print(f"⚠️ Could not clear existing data: {e}")
+
     # Extract timestamps for metadata
-    # frame_0001.jpg -> [0001]; clip_001_frame_0001.jpg -> [001, 0001] - use last (frame num)
     timestamps = []
     for frame in frames:
         try:
             nums = re.findall(r"\d+", frame)
             frame_num = int(nums[-1]) if nums else 0
-            timestamp = frame_num / 5.0  # 5 FPS
+            timestamp = frame_num / 5.0
             timestamps.append(timestamp)
         except:
             timestamps.append(0.0)
-    
-    # Store in vector DB (batch processing for large datasets)
+
+    print(f"🔄 Generating embeddings for {len(captions)} captions...")
+    embeddings = embedding_model.encode(captions).tolist()
+
     batch_size = 100
-    print(f"💾 Storing {len(captions)} embeddings in vector database...")
-    
+    print(f"💾 Storing {len(captions)} captions in vector database...")
     for i in range(0, len(captions), batch_size):
         batch_end = min(i + batch_size, len(captions))
         collection.add(
@@ -86,7 +98,6 @@ def load_captions_to_vector_db():
             ids=ids[i:batch_end]
         )
         print(f"  Stored {batch_end}/{len(captions)} captions...")
-    
     print(f"✅ Stored {len(captions)} captions in vector database")
 
 

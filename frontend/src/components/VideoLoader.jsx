@@ -1,5 +1,7 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { videoAPI } from '../services/api'
+
+const API_BASE = 'http://localhost:8000'
 
 const ACCEPTED_VIDEO = '.mp4,.mov,.webm,.avi,.mkv'
 const ACCEPTED_EXT = ['.mp4', '.mov', '.webm', '.avi', '.mkv']
@@ -11,7 +13,21 @@ const VideoLoader = () => {
   const [isDragging, setIsDragging] = useState(false)
   const [status, setStatus] = useState({ state: 'idle', message: '' })
   const [loading, setLoading] = useState(false)
+  const [uploadedClips, setUploadedClips] = useState([])
   const fileInputRef = useRef(null)
+
+  const fetchUploadedClips = async () => {
+    try {
+      const { clips } = await videoAPI.getSourceClips()
+      setUploadedClips(clips || [])
+    } catch (e) {
+      console.error('Failed to fetch clips:', e)
+    }
+  }
+
+  useEffect(() => {
+    fetchUploadedClips()
+  }, [])
 
   const isValidVideo = (file) => ACCEPTED_EXT.some(ext => file.name.toLowerCase().endsWith(ext))
 
@@ -68,6 +84,7 @@ const VideoLoader = () => {
           if (data.state === 'completed') {
             alert('✅ Video processed! You can now search.')
             setSelectedFiles([])
+            fetchUploadedClips()
           }
         }
       } catch (error) {
@@ -269,6 +286,43 @@ const VideoLoader = () => {
             {status.state === 'idle' && 'ℹ️'}
           </span>
           <span>Status: {status.message}</span>
+        </div>
+      )}
+
+      {uploadedClips.length > 0 && (
+        <div style={{ marginTop: '24px' }}>
+          <h3 style={{ marginBottom: '12px', fontSize: '1.1rem' }}>📁 Your uploaded clips</h3>
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
+              gap: '16px',
+            }}
+          >
+            {uploadedClips.map((clip) => (
+              <div
+                key={clip.name}
+                style={{
+                  background: 'var(--surface-alt)',
+                  borderRadius: 'var(--radius)',
+                  overflow: 'hidden',
+                  border: '1px solid var(--border-strong)',
+                }}
+              >
+                <video
+                  controls
+                  preload="metadata"
+                  style={{ width: '100%', display: 'block' }}
+                  src={`${API_BASE}${clip.url}`}
+                >
+                  Your browser does not support the video tag.
+                </video>
+                <div style={{ padding: '12px', fontSize: '14px', color: 'var(--text-muted)' }}>
+                  {clip.name}
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       )}
     </section>
