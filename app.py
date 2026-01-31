@@ -110,6 +110,11 @@ async def process_clips_endpoint(
 def get_status():
     return processing_status
 
+# Ensure dirs exist before mounting (mount happens at import, startup runs later)
+os.makedirs("source_clips", exist_ok=True)
+os.makedirs("clips", exist_ok=True)
+os.makedirs("frames", exist_ok=True)
+
 # Mount current directory to serve video.mp4 (simple approach for dev)
 app.mount("/videos", StaticFiles(directory="."), name="videos")
 app.mount("/clips", StaticFiles(directory="clips"), name="clips")

@@ -1,27 +1,29 @@
 # production_planner.py
 import os
 import json
+from pathlib import Path
 from dotenv import load_dotenv
 
-load_dotenv()
+# Load .env from project root (same dir as this file)
+load_dotenv(Path(__file__).resolve().parent / ".env")
 
 try:
-    from openai import OpenAI
-    api_key = os.getenv("OPENAI_API_KEY")
+    from groq import Groq
+    api_key = os.getenv("GROQ_API_KEY")
     if api_key:
-        client = OpenAI(api_key=api_key)
-        OPENAI_AVAILABLE = True
+        client = Groq(api_key=api_key)
+        GROQ_AVAILABLE = True
     else:
-        print("⚠️ OPENAI_API_KEY not found in .env file")
-        OPENAI_AVAILABLE = False
+        print("⚠️ GROQ_API_KEY not found in .env file")
+        GROQ_AVAILABLE = False
         client = None
 except ImportError:
-    print("⚠️ OpenAI package not installed. Install with: pip install openai")
-    OPENAI_AVAILABLE = False
+    print("⚠️ Groq package not installed. Install with: pip install groq")
+    GROQ_AVAILABLE = False
     client = None
 except Exception as e:
-    print(f"⚠️ OpenAI client initialization failed: {e}")
-    OPENAI_AVAILABLE = False
+    print(f"⚠️ Groq client initialization failed: {e}")
+    GROQ_AVAILABLE = False
     client = None
 
 PRODUCTION_PROMPT = """You are a professional film production planner, line producer, and risk assessment expert.
@@ -134,18 +136,20 @@ IMPORTANT RULES:
 - Output must be directly usable by a software application."""
 
 def generate_production_plan(script_text: str, total_budget: float):
-    """Generate production breakdown using OpenAI"""
+    """Generate production breakdown using Groq"""
     
-    if not OPENAI_AVAILABLE or not client:
+    if not GROQ_AVAILABLE or not client:
         return {
-            "error": "OpenAI API not available. Please check your API key configuration."
+            "error": "Groq API not available. Please add GROQ_API_KEY to your .env file."
         }
     
     try:
         prompt = f"{PRODUCTION_PROMPT}\n\nScript:\n{script_text}\n\nTotal Budget: ${total_budget:,.2f}"
         
+        model = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
+        
         response = client.chat.completions.create(
-            model=os.getenv("OPENAI_MODEL", "gpt-4"),
+            model=model,
             messages=[
                 {"role": "system", "content": "You are a professional film production planner. Always return valid JSON only, no explanations."},
                 {"role": "user", "content": prompt}
