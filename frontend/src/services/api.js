@@ -16,13 +16,13 @@ export const videoAPI = {
     return response.data
   },
 
-  // Process multiple uploaded video clips
+  // Process multiple uploaded video clips (use axios directly - api instance has Content-Type: application/json which breaks FormData)
   processClips: async (files) => {
     const formData = new FormData()
     for (const file of files) {
       formData.append('files', file)
     }
-    const response = await api.post('/process-clips', formData)
+    const response = await axios.post(`${API_BASE_URL}/process-clips`, formData)
     return response.data
   },
 
