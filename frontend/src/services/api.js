@@ -55,6 +55,12 @@ export const videoAPI = {
     const response = await api.post(`/rag-search?query=${encodeURIComponent(query)}`)
     return response.data
   },
+
+  // Audio-only search
+  audioSearch: async (query) => {
+    const response = await api.post(`/audio-search?query=${encodeURIComponent(query)}`)
+    return response.data
+  },
 }
 
 export const productionAPI = {

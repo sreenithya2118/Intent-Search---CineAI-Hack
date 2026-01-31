@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { videoAPI } from '../services/api'
 import ResultCard from './ResultCard'
+import { Search, Headphones } from 'lucide-react'
 
 const RAGSearch = () => {
   const [query, setQuery] = useState('')
@@ -8,6 +9,7 @@ const RAGSearch = () => {
   const [ragData, setRagData] = useState(null)
   const [loading, setLoading] = useState(false)
   const [loadingSuggestions, setLoadingSuggestions] = useState(false)
+  const [searchMode, setSearchMode] = useState('multimodal') // 'multimodal' or 'audio'
 
   // Step 1: Get better-sentence suggestions (before searching)
   const handleGetSuggestions = async () => {
@@ -43,10 +45,15 @@ const RAGSearch = () => {
     setLoading(true)
     setRagData(null)
     try {
-      const data = await videoAPI.ragSearch(searchQuery)
+      let data
+      if (searchMode === 'audio') {
+        data = await videoAPI.audioSearch(searchQuery)
+      } else {
+        data = await videoAPI.ragSearch(searchQuery)
+      }
       setRagData(data)
     } catch (error) {
-      console.error('RAG search error:', error)
+      console.error('Search error:', error)
       setRagData(null)
       alert('❌ Error: ' + (error.message || 'Unknown error'))
     } finally {
@@ -56,6 +63,34 @@ const RAGSearch = () => {
 
   return (
     <section id="rag-search" className="section enhanced-search-section">
+      {/* Search Mode Toggle */}
+      <div className="search-mode-toggle">
+        <button
+          className={`mode-toggle-btn ${searchMode === 'multimodal' ? 'active' : ''}`}
+          onClick={() => {
+            setSearchMode('multimodal')
+            setRagData(null)
+            setPreSuggestions(null)
+          }}
+          disabled={loading || loadingSuggestions}
+        >
+          <Search size={18} />
+          <span>Multimodal Search</span>
+        </button>
+        <button
+          className={`mode-toggle-btn ${searchMode === 'audio' ? 'active' : ''}`}
+          onClick={() => {
+            setSearchMode('audio')
+            setRagData(null)
+            setPreSuggestions(null)
+          }}
+          disabled={loading || loadingSuggestions}
+        >
+          <Headphones size={18} />
+          <span>Audio Search</span>
+        </button>
+      </div>
+
       <div className="input-group enhanced-input-group">
         <input
           id="rag-query-input"
@@ -63,7 +98,7 @@ const RAGSearch = () => {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onKeyPress={(e) => e.key === 'Enter' && !loadingSuggestions && !loading && handleGetSuggestions()}
-          placeholder="e.g. crowd celebrating after goal"
+          placeholder={searchMode === 'audio' ? "e.g. when they say hello, dialogue about the mission" : "e.g. crowd celebrating after goal"}
           disabled={loadingSuggestions || loading}
         />
         <button className="btn btn-secondary" onClick={handleGetSuggestions} disabled={loadingSuggestions || loading}>
@@ -79,8 +114,8 @@ const RAGSearch = () => {
             </>
           ) : (
             <>
-              <span>✨</span>
-              <span>Multi modal search</span>
+              {searchMode === 'audio' ? <Headphones size={18} /> : <span>✨</span>}
+              <span>{searchMode === 'audio' ? 'Audio Search' : 'Multi modal search'}</span>
             </>
           )}
         </button>
@@ -151,7 +186,8 @@ const RAGSearch = () => {
             {ragData.results && ragData.results.length > 0 ? (
               <>
                 <h3>
-                  🎬 Found {ragData.count} clip{ragData.count !== 1 ? 's' : ''}:
+                  {searchMode === 'audio' ? '🎵' : '🎬'} Found {ragData.count} clip{ragData.count !== 1 ? 's' : ''} 
+                  {searchMode === 'audio' && ' (from audio transcriptions)'}:
                 </h3>
                 {ragData.results.map((item, index) => (
                   <ResultCard key={index} item={item} index={index + 1} />
@@ -159,7 +195,11 @@ const RAGSearch = () => {
               </>
             ) : (
               <div className="empty-state">
-                <p>No clips found. Try another phrase or use the suggestions above.</p>
+                <p>
+                  {searchMode === 'audio' 
+                    ? 'No audio transcriptions found. Make sure videos have been processed with audio transcription.'
+                    : 'No clips found. Try another phrase or use the suggestions above.'}
+                </p>
               </div>
             )}
           </>
