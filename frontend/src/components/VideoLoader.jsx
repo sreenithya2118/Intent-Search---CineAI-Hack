@@ -186,14 +186,19 @@ const VideoLoader = () => {
           <div
             className="file-drop-zone"
             onClick={() => fileInputRef.current?.click()}
+            onDrop={handleDrop}
+            onDragOver={handleDragOver}
+            onDragEnter={handleDragOver}
+            onDragLeave={handleDragLeave}
             style={{
-              border: '2px dashed var(--border-strong)',
+              border: `2px dashed ${isDragging ? 'var(--primary)' : 'var(--border-strong)'}`,
               borderRadius: 'var(--radius)',
               padding: '24px',
               textAlign: 'center',
               cursor: 'pointer',
               marginBottom: '12px',
-              background: 'var(--surface-alt)',
+              background: isDragging ? 'var(--primary-light)' : 'var(--surface-alt)',
+              transition: 'border-color 0.15s, background 0.15s',
             }}
           >
             <input
