@@ -3,6 +3,7 @@ import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { Video, Search, Sparkles, ArrowRight, Zap, Shield, Brain, TrendingUp, Play, Upload as UploadIcon } from 'lucide-react'
 import LottieAnimation from '../components/LottieAnimation'
+import aiDataAnimation from '../../lottiefiles/AI data.json'
 
 const features = [
   {
@@ -94,50 +95,26 @@ export default function HomePage() {
         >
           <div className="animation-container">
             <LottieAnimation
-              type="video"
+              animationData={aiDataAnimation}
               fallback={
                 <div className="hero-animation-fallback">
                   <motion.div
-                    animate={{ 
-                      scale: [1, 1.1, 1],
-                      rotate: [0, 5, -5, 0]
-                    }}
-                    transition={{ 
-                      duration: 4,
-                      repeat: Infinity,
-                      ease: "easeInOut"
-                    }}
+                    animate={{ scale: [1, 1.1, 1], rotate: [0, 5, -5, 0] }}
+                    transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
                     className="animated-video-icon"
                   >
                     <Video size={120} />
                   </motion.div>
                   <motion.div
-                    animate={{ 
-                      x: [0, 20, 0],
-                      y: [0, -10, 0],
-                      opacity: [0.5, 1, 0.5]
-                    }}
-                    transition={{ 
-                      duration: 3,
-                      repeat: Infinity,
-                      ease: "easeInOut",
-                      delay: 0.5
-                    }}
+                    animate={{ x: [0, 20, 0], y: [0, -10, 0], opacity: [0.5, 1, 0.5] }}
+                    transition={{ duration: 3, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
                     className="animated-search-icon"
                   >
                     <Search size={60} />
                   </motion.div>
                   <motion.div
-                    animate={{ 
-                      scale: [1, 1.2, 1],
-                      opacity: [0.3, 0.6, 0.3]
-                    }}
-                    transition={{ 
-                      duration: 2,
-                      repeat: Infinity,
-                      ease: "easeInOut",
-                      delay: 1
-                    }}
+                    animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.6, 0.3] }}
+                    transition={{ duration: 2, repeat: Infinity, ease: "easeInOut", delay: 1 }}
                     className="animated-pulse-ring"
                   />
                 </div>

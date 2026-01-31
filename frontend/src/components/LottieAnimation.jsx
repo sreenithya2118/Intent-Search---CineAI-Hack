@@ -10,12 +10,20 @@ const ANIMATION_URLS = {
   upload: null
 }
 
-export default function LottieAnimation({ type = 'video', fallback = null, className = '', url = null }) {
-  const [animationData, setAnimationData] = useState(null)
-  const [loading, setLoading] = useState(true)
+export default function LottieAnimation({ type = 'video', fallback = null, className = '', url = null, animationData: externalAnimationData = null }) {
+  const [animationData, setAnimationData] = useState(externalAnimationData)
+  const [loading, setLoading] = useState(!externalAnimationData)
   const [error, setError] = useState(false)
 
   useEffect(() => {
+    // If animation data is passed directly, use it
+    if (externalAnimationData) {
+      setAnimationData(externalAnimationData)
+      setLoading(false)
+      setError(false)
+      return
+    }
+
     const fetchAnimation = async () => {
       const animationUrl = url || ANIMATION_URLS[type]
       
@@ -41,7 +49,7 @@ export default function LottieAnimation({ type = 'video', fallback = null, class
     }
 
     fetchAnimation()
-  }, [type, url])
+  }, [type, url, externalAnimationData])
 
   if (loading) {
     return (
