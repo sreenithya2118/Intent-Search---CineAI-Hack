@@ -1,8 +1,12 @@
 import { useState } from 'react'
 import { productionAPI } from '../services/api'
 import BudgetDashboard from './BudgetDashboard'
-import RiskDashboard from './RiskDashboard'
 import SceneBreakdown from './SceneBreakdown'
+
+const TABS = [
+  { id: 'budget', label: 'Budget', icon: '💰' },
+  { id: 'scenes', label: 'Scene Breakdown', icon: '🎬' }
+]
 
 const ProductionPlanner = () => {
   const [script, setScript] = useState('')
@@ -10,6 +14,7 @@ const ProductionPlanner = () => {
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState(null)
   const [error, setError] = useState('')
+  const [activeTab, setActiveTab] = useState('budget')
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -36,6 +41,7 @@ const ProductionPlanner = () => {
         setError(data.error)
       } else {
         setResult(data)
+        setActiveTab('budget')
       }
     } catch (err) {
       setError(err.message || 'Failed to generate production plan')
@@ -44,11 +50,74 @@ const ProductionPlanner = () => {
     }
   }
 
+  const handleNewPlan = () => {
+    setResult(null)
+    setError('')
+    setActiveTab('budget')
+  }
+
+  // After result: show only tabs + content, no form
+  if (result) {
+    return (
+      <section id="production-planner" className="section">
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '12px' }}>
+          <h2 style={{ color: 'var(--text)', margin: 0 }}>📋 Production Plan</h2>
+          <button
+            type="button"
+            onClick={handleNewPlan}
+            style={{
+              padding: '8px 16px',
+              borderRadius: 'var(--radius)',
+              border: '1px solid var(--border)',
+              background: 'transparent',
+              color: 'var(--text)',
+              fontSize: '14px',
+              cursor: 'pointer'
+            }}
+          >
+            ← New plan
+          </button>
+        </div>
+
+        <div style={{ 
+          borderBottom: '1px solid var(--border-strong)', 
+          marginBottom: '24px',
+          display: 'flex',
+          gap: '4px'
+        }}>
+          {TABS.map(({ id, label, icon }) => (
+            <button
+              key={id}
+              type="button"
+              onClick={() => setActiveTab(id)}
+              style={{
+                padding: '12px 20px',
+                border: 'none',
+                borderBottom: activeTab === id ? '2px solid var(--primary)' : '2px solid transparent',
+                background: 'transparent',
+                color: activeTab === id ? 'var(--primary)' : 'var(--text-muted)',
+                fontSize: '15px',
+                fontWeight: 500,
+                cursor: 'pointer'
+              }}
+            >
+              {icon} {label}
+            </button>
+          ))}
+        </div>
+
+        {activeTab === 'budget' && <BudgetDashboard data={result} />}
+        {activeTab === 'scenes' && <SceneBreakdown data={result} />}
+      </section>
+    )
+  }
+
+  // No result: show form
   return (
     <section id="production-planner" className="section">
       <h2>📋 Production Planner</h2>
       <p className="text-muted" style={{ marginBottom: '32px', fontSize: '1.1rem' }}>
-        Enter your script and budget to get a complete production breakdown with scene analysis, budget allocation, safety requirements, and risk assessment.
+        Enter your script and budget to get a complete production breakdown with scene analysis, budget allocation, and safety requirements.
       </p>
 
       <form onSubmit={handleSubmit}>
@@ -123,14 +192,6 @@ const ProductionPlanner = () => {
         <div className="status error" style={{ marginTop: '16px' }}>
           <span>❌</span>
           <span>{error}</span>
-        </div>
-      )}
-
-      {result && (
-        <div style={{ marginTop: '32px' }}>
-          <BudgetDashboard data={result} />
-          <RiskDashboard data={result} />
-          <SceneBreakdown data={result} />
         </div>
       )}
     </section>
