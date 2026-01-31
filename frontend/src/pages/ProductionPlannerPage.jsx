@@ -2,6 +2,7 @@ import { motion } from 'framer-motion'
 import ProductionPlanner from '../components/ProductionPlanner'
 import { ClipboardList, Film, TrendingUp, Shield } from 'lucide-react'
 import LottieAnimation from '../components/LottieAnimation'
+import planAchievedAnimation from '../../lottiefiles/Plan achieved.json'
 
 export default function ProductionPlannerPage() {
   return (
@@ -69,7 +70,7 @@ export default function ProductionPlannerPage() {
             className="page-hero-animation"
           >
             <LottieAnimation
-              type="video"
+              animationData={planAchievedAnimation}
               fallback={
                 <div className="hero-animation-fallback">
                   <motion.div

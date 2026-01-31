@@ -2,6 +2,7 @@ import { motion } from 'framer-motion'
 import RAGSearch from '../components/RAGSearch'
 import { Search, Sparkles, Brain, Zap } from 'lucide-react'
 import LottieAnimation from '../components/LottieAnimation'
+import multimodalAnimation from '../../lottiefiles/multimodal.json'
 
 export default function SearchPage() {
   return (
@@ -21,7 +22,7 @@ export default function SearchPage() {
             className="page-hero-animation"
           >
             <LottieAnimation
-              type="search"
+              animationData={multimodalAnimation}
               fallback={
                 <div className="hero-animation-fallback">
                   <motion.div

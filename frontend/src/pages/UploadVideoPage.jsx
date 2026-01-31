@@ -2,6 +2,7 @@ import { motion } from 'framer-motion'
 import VideoLoader from '../components/VideoLoader'
 import { Video, Upload, Youtube, Zap } from 'lucide-react'
 import LottieAnimation from '../components/LottieAnimation'
+import uploadingAnimation from '../../lottiefiles/uploading.json'
 
 export default function UploadVideoPage() {
   return (
@@ -69,7 +70,7 @@ export default function UploadVideoPage() {
             className="page-hero-animation"
           >
             <LottieAnimation
-              type="upload"
+              animationData={uploadingAnimation}
               fallback={
                 <div className="hero-animation-fallback">
                   <motion.div
