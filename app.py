@@ -6,6 +6,15 @@ from intent_search import intent_search
 from process_video import process_video_logic
 from pydantic import BaseModel
 
+# RAG imports
+try:
+    from rag_search import rag_search
+    from vector_store import load_captions_to_vector_db
+    RAG_AVAILABLE = True
+except ImportError as e:
+    print(f"⚠️ RAG modules not available: {e}")
+    RAG_AVAILABLE = False
+
 class VideoRequest(BaseModel):
     url: str
 
@@ -22,7 +31,13 @@ def update_status(msg):
     global processing_status
     if msg == "COMPLETED":
         print("🔄 processing complete. Reloading search index...")
-        load_data() # Reload embeddings
+        load_data()  # Reload embeddings (old method)
+        # Also load to vector DB if RAG is available
+        if RAG_AVAILABLE:
+            try:
+                load_captions_to_vector_db()
+            except Exception as e:
+                print(f"⚠️ Vector DB load failed: {e}")
         processing_status = {"state": "completed", "message": "Done! Search now."}
     elif msg.startswith("ERROR"):
         processing_status = {"state": "error", "message": msg}
@@ -66,3 +81,10 @@ def search(query: str):
 @app.post("/intent-search")
 def intent(query: str):
     return intent_search(query)
+
+# RAG endpoint
+if RAG_AVAILABLE:
+    @app.post("/rag-search")
+    def rag_search_endpoint(query: str):
+        """RAG-enhanced search with explanations"""
+        return rag_search(query)

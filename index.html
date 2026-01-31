@@ -44,6 +44,14 @@
 
     <div id="results"></div>
 
+    <div style="margin-top: 40px; padding: 20px; background: #e8f4f8; border-radius: 8px; border: 2px solid #4a90e2;">
+        <h3>🤖 RAG-Enhanced Search (with AI explanations)</h3>
+        <p style="color: #555; font-size: 14px;">Get intelligent explanations, suggestions, and summaries of your search results</p>
+        <input id="ragQuery" placeholder="hesitant reaction before answering" style="width:400px; padding:8px;" />
+        <button onclick="ragSearch()" style="padding:8px 12px; margin-left:5px; background:#4a90e2; color:white; border:none; border-radius:4px; cursor:pointer;">RAG Search</button>
+        <div id="ragResults" style="margin-top:15px;"></div>
+    </div>
+
     <script>
         async function processVideo() {
             const url = document.getElementById("videoUrl").value;
@@ -125,6 +133,87 @@
             } catch (err) {
                 document.getElementById("results").innerHTML =
                     "❌ Error connecting to backend";
+                console.error(err);
+            }
+        }
+
+        async function ragSearch() {
+            const query = document.getElementById("ragQuery").value;
+            if (!query) {
+                alert("Please enter a search query");
+                return;
+            }
+            
+            document.getElementById("ragResults").innerHTML = "<p>Searching with AI...</p>";
+
+            try {
+                const response = await fetch(
+                    `http://localhost:8000/rag-search?query=${encodeURIComponent(query)}`,
+                    { method: "POST" }
+                );
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+
+                let html = `
+                    <div style="background: white; padding: 15px; border-radius: 5px; margin-bottom: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                        <h4 style="color: #4a90e2; margin-top:0;">💡 AI Explanation:</h4>
+                        <p style="line-height: 1.6;">${data.explanation || "No explanation available."}</p>
+                        
+                        <h4 style="color: #4a90e2;">📊 Summary:</h4>
+                        <p style="line-height: 1.6;">${data.summary || "No summary available."}</p>
+                        
+                        <h4 style="color: #4a90e2;">💡 Suggested Queries:</h4>
+                        <ul style="line-height: 1.8;">
+                            ${(data.suggestions || []).map(s => `<li style="cursor:pointer; color:#4a90e2;" onclick="document.getElementById('ragQuery').value='${s.replace(/'/g, "\\'")}'; ragSearch();">${s}</li>`).join('')}
+                        </ul>
+                    </div>
+                `;
+
+                if (data.results && data.results.length > 0) {
+                    html += `<h4 style="color: #4a90e2;">🎬 Found ${data.count} matching video clips:</h4>`;
+                    data.results.forEach((item, index) => {
+                        html += `
+                            <div style="margin-bottom:20px; padding:15px; border:1px solid #ddd; border-radius:5px; background:white;">
+                                <div style="display:flex; gap:15px;">
+                                    <div style="flex:1;">
+                                        <b>Match ${index + 1}:</b> ${item.caption}<br>
+                                        <b>Relevance Score:</b> ${item.score.toFixed(3)}<br>
+                                        <b>Intent:</b> ${item.intent}<br>
+                                        <b>Time Range:</b> ${item.start.toFixed(1)}s - ${item.end.toFixed(1)}s<br>
+                                        <img src="http://localhost:8000/frames/${item.best_frame}" 
+                                             style="width:200px; margin-top:10px; border:1px solid #ddd; border-radius:4px;" 
+                                             onerror="this.style.display='none';" /><br>
+                                        <a href="${item.full_video_url}" target="_blank" 
+                                           style="text-decoration:none; color:#4a90e2; font-size:14px; margin-top:10px; display:inline-block;">
+                                            🔗 Jump to time in full video
+                                        </a>
+                                    </div>
+                                    <div style="flex:1;">
+                                        <video width="320" height="240" controls style="border-radius:4px;">
+                                            <source src="${item.video_url}" type="video/mp4">
+                                            Your browser does not support the video tag.
+                                        </video>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                } else {
+                    html += `<p style="color: #d32f2f;">No matching video clips found. Try the suggested queries above or rephrase your search.</p>`;
+                }
+
+                document.getElementById("ragResults").innerHTML = html;
+
+            } catch (err) {
+                document.getElementById("ragResults").innerHTML = 
+                    `<div style="background:#ffebee; padding:15px; border-radius:5px; color:#d32f2f;">
+                        <strong>❌ Error:</strong> ${err.message}<br>
+                        <small>Make sure the backend is running and RAG is properly configured.</small>
+                    </div>`;
                 console.error(err);
             }
         }

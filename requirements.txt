@@ -5,3 +5,6 @@ transformers
 torch
 Pillow
 yt-dlp
+chromadb
+python-dotenv
+requests
